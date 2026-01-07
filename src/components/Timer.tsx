@@ -19,6 +19,17 @@ const Timer: React.FC<TimerProps> = ({ onTaskComplete }) => {
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
   const companies = [
+    'Fundmax',
+    'Boni Livros',
+    'Vox FM',
+    'Netflex',
+    'RioFibras',
+    'Mauricio Moraes',
+    'Café com Zakia',
+    'Antes da Consulta',
+    'Sai do Raso',
+    'Marcela Beauty',
+    'Santo Antonio',
     'Treina que Sara',
     'Luciana Magazine',
     'Projeto Pessoal',
