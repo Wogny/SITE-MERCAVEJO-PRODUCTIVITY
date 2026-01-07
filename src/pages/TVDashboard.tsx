@@ -1,24 +1,47 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, PieChart, Pie } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 import { Clock, TrendingUp, Users, Building2 } from 'lucide-react';
 
 export default function TVDashboard() {
   const [data, setData] = useState<any[]>([]);
   const [stats, setStats] = useState({ totalTime: 0, totalTasks: 0, activeUsers: 0 });
   const [loading, setLoading] = useState(true);
+  const [currentTime, setCurrentTime] = useState(new Date());
 
+  // 1. Efeito para o Relógio (Atualiza a cada segundo)
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentTime(new Date());
+    }, 1000);
+    return () => clearInterval(timer);
+  }, []);
+
+  // 2. Efeito para buscar dados e configurar Realtime
   useEffect(() => {
     fetchGlobalData();
-    const subscription = supabase
-      .channel('global-tasks')
-      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'tasks' }, () => {
-        fetchGlobalData();
-      })
-      .subscribe();
+
+    // Configuração do canal Realtime
+    const channel = supabase
+      .channel('schema-db-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*', // Escuta INSERT, UPDATE e DELETE
+          schema: 'public',
+          table: 'tasks'
+        },
+        (payload) => {
+          console.log('Mudança detectada no banco:', payload);
+          fetchGlobalData(); // Recarrega os dados automaticamente
+        }
+      )
+      .subscribe((status) => {
+        console.log('Status da conexão Realtime:', status);
+      });
 
     return () => {
-      supabase.removeChannel(subscription);
+      supabase.removeChannel(channel);
     };
   }, []);
 
@@ -41,7 +64,7 @@ export default function TVDashboard() {
 
       const chartData = Object.keys(companyMap).map(name => ({
         name,
-        value: Math.floor(companyMap[name] / 3600), // Converter para horas
+        value: Number((companyMap[name] / 3600).toFixed(2)), // Horas com 2 casas decimais
         originalValue: companyMap[name]
       })).sort((a, b) => b.value - a.value);
 
@@ -86,8 +109,8 @@ export default function TVDashboard() {
           <p className="text-slate-400 font-mono uppercase tracking-widest text-sm mt-1">Monitoramento de Produtividade em Tempo Real</p>
         </div>
         <div className="text-right font-mono">
-          <div className="text-2xl text-white">{new Date().toLocaleTimeString()}</div>
-          <div className="text-slate-500">{new Date().toLocaleDateString()}</div>
+          <div className="text-3xl text-white font-bold">{currentTime.toLocaleTimeString()}</div>
+          <div className="text-slate-500">{currentTime.toLocaleDateString()}</div>
         </div>
       </div>
 
