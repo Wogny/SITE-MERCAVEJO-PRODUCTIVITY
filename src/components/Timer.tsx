@@ -124,16 +124,17 @@ const Timer: React.FC<TimerProps> = ({ onTaskComplete }) => {
   };
 
   return (
-    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+    <div className="bg-white rounded-2xl shadow-2xl border border-gray-100 p-6 sm:p-8 max-w-md w-full mx-auto">
       <div className="text-center mb-8">
-        <div className="text-6xl font-mono font-bold text-gray-900 mb-4">
+        <div className="text-5xl sm:text-6xl font-mono font-bold text-mercavejo-blue mb-6 tracking-tighter">
           {formatTime(time)}
         </div>
-        <div className="flex justify-center space-x-4">
+        
+        <div className="flex flex-wrap justify-center gap-3 sm:gap-4">
           {!isRunning ? (
             <button
               onClick={handleStart}
-              className="flex items-center space-x-2 bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-green-500"
+              className="flex items-center justify-center space-x-2 bg-mercavejo-blue hover:bg-mercavejo-dark text-white px-5 py-3 sm:px-6 sm:py-3 rounded-xl font-bold transition-all transform active:scale-95 shadow-lg shadow-blue-900/20 flex-1 sm:flex-none min-w-[120px]"
             >
               <Play className="w-5 h-5" />
               <span>Iniciar</span>
@@ -141,22 +142,25 @@ const Timer: React.FC<TimerProps> = ({ onTaskComplete }) => {
           ) : (
             <button
               onClick={handlePause}
-              className="flex items-center space-x-2 bg-yellow-600 hover:bg-yellow-700 text-white px-6 py-3 rounded-lg font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-yellow-500"
+              className="flex items-center justify-center space-x-2 bg-mercavejo-gold hover:opacity-90 text-white px-5 py-3 sm:px-6 sm:py-3 rounded-xl font-bold transition-all transform active:scale-95 shadow-lg shadow-amber-900/20 flex-1 sm:flex-none min-w-[120px]"
             >
               <Pause className="w-5 h-5" />
               <span>Pausar</span>
             </button>
           )}
+          
           <button
             onClick={handleStop}
-            className="flex items-center space-x-2 bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-lg font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-red-500"
+            disabled={time === 0}
+            className="flex items-center justify-center space-x-2 bg-red-600 hover:bg-red-700 text-white px-5 py-3 sm:px-6 sm:py-3 rounded-xl font-bold transition-all flex-1 sm:flex-none min-w-[120px] disabled:bg-gray-200"
           >
             <Square className="w-5 h-5" />
             <span>Parar</span>
           </button>
+
           <button
             onClick={handleReset}
-            className="flex items-center space-x-2 bg-gray-600 hover:bg-gray-700 text-white px-6 py-3 rounded-lg font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-gray-500"
+            className="flex items-center justify-center space-x-2 bg-gray-100 hover:bg-gray-200 text-gray-600 px-5 py-3 sm:px-6 sm:py-3 rounded-xl font-bold transition-all flex-1 sm:flex-none min-w-[120px]"
           >
             <RotateCcw className="w-5 h-5" />
             <span>Reset</span>
@@ -166,45 +170,32 @@ const Timer: React.FC<TimerProps> = ({ onTaskComplete }) => {
 
       <div className="space-y-4">
         <div>
-          <label htmlFor="taskName" className="block text-sm font-medium text-gray-700 mb-2">
-            Nome da Tarefa
+          <label className="block text-xs font-black text-mercavejo-blue mb-1 uppercase tracking-widest">
+            O que você está fazendo?
           </label>
           <input
             type="text"
-            id="taskName"
+            placeholder="Ex: Reunião de Planejamento"
             value={taskName}
             onChange={(e) => setTaskName(e.target.value)}
-            placeholder="Ex: Editar Episódio"
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-mercavejo-gold focus:border-transparent outline-none transition-all"
           />
         </div>
 
         <div>
-          <label htmlFor="company" className="block text-sm font-medium text-gray-700 mb-2">
-            Empresa/Cliente
+          <label className="block text-xs font-black text-mercavejo-blue mb-1 uppercase tracking-widest">
+            Empresa / Cliente
           </label>
           <select
-            id="company"
             value={company}
             onChange={(e) => setCompany(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-mercavejo-gold focus:border-transparent outline-none transition-all appearance-none bg-white"
           >
-            <option value="">Selecione uma empresa</option>
-            {companies.map((comp) => (
-              <option key={comp} value={comp}>
-                {comp}
-              </option>
+            <option value="">Selecione um cliente</option>
+            {companies.map(c => (
+              <option key={c} value={c}>{c}</option>
             ))}
           </select>
-          {company === 'Outro' && (
-            <input
-              type="text"
-              value={company}
-              onChange={(e) => setCompany(e.target.value)}
-              placeholder="Digite o nome da empresa"
-              className="w-full mt-2 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            />
-          )}
         </div>
       </div>
     </div>

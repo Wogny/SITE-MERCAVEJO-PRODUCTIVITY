@@ -57,7 +57,7 @@ export default function TVDashboard() {
     return `${hours}h ${minutes}m`;
   };
 
-  const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#06b6d4', '#f97316'];
+  const COLORS = ['#C5A267', '#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#06b6d4'];
 
   if (loading) return (
     <div className="min-h-screen bg-slate-950 flex items-center justify-center">
@@ -72,21 +72,19 @@ export default function TVDashboard() {
         <div className="flex items-center gap-4">
           <div className="bg-red-600 text-white px-3 py-1 rounded text-xs font-black animate-pulse">LIVE</div>
           <h1 className="text-3xl font-black tracking-tighter">MERCAVEJO <span className="text-blue-500">PRODUCTIVITY</span></h1>
-          <div className={`flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold ${isConnected ? 'bg-emerald-500/10 text-emerald-500' : 'bg-red-500/10 text-red-500'}`}>
-            {isConnected ? <Wifi className="w-3 h-3" /> : <WifiOff className="w-3 h-3" />}
-            {isConnected ? 'REALTIME ACTIVE' : 'RECONNECTING...'}
-          </div>
+          <div className={`flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold ${isConnected ? 'bg-emerald-500/10 text-emerald-500' : 'b            MERCAVEJO <span className="text-mercavejo-gold">PRODUCTIVITY</span></h1>
+          <p className="text-slate-400 font-mono uppercase tracking-widest text-sm mt-1">Monitoramento de Produtividade em Tempo Real</p>
         </div>
         <div className="text-right font-mono">
           <div className="text-4xl font-black leading-none text-white">{currentTime.toLocaleTimeString()}</div>
-          <div className="text-slate-500 text-sm uppercase tracking-widest font-bold">{currentTime.toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' })}</div>
+          <div className="text-mercavejo-gold text-sm uppercase tracking-widest font-bold">{currentTime.toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' })}</div>
         </div>
       </div>
 
       {/* Stats Grid */}
       <div className="grid grid-cols-4 gap-4 mb-6">
         {[
-          { label: 'Tempo Total', val: formatDuration(stats.totalTime), icon: Clock, color: 'text-blue-500' },
+          { label: 'Tempo Total', val: formatDuration(stats.totalTime), icon: Clock, color: 'text-mercavejo-gold' },
           { label: 'Tarefas', val: stats.totalTasks, icon: TrendingUp, color: 'text-emerald-500' },
           { label: 'Usuários', val: stats.activeUsers, icon: Users, color: 'text-amber-500' },
           { label: 'Clientes', val: data.length, icon: Building2, color: 'text-purple-500' }
@@ -105,8 +103,7 @@ export default function TVDashboard() {
       <div className="flex-1 grid grid-cols-3 gap-6 min-h-0 mb-12">
         {/* Chart Container */}
         <div className="col-span-2 bg-slate-900/80 border border-slate-700 p-8 rounded-3xl flex flex-col shadow-2xl">
-          <h3 className="text-xl font-black mb-6 text-blue-400 uppercase tracking-[0.2em]">Horas por Cliente</h3>
-          <div className="flex-1 min-h-0">
+          <h3 className="text-xl font-black mb-6 text-mercavejo-gold uppercase tracking-[0.2em]">Horas por Cliente</h3>div className="flex-1 min-h-0">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={data} layout="vertical" margin={{ left: 40, right: 60, top: 0, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#334155" horizontal={false} />
@@ -154,13 +151,13 @@ export default function TVDashboard() {
       </div>
 
       {/* Footer Ticker */}
-      <div className="fixed bottom-0 left-0 right-0 bg-blue-600 h-12 flex items-center overflow-hidden border-t-2 border-blue-400 shadow-[0_-10px_50px_rgba(37,99,235,0.4)]">
+      <div className="fixed bottom-0 left-0 right-0 bg-mercavejo-blue h-12 flex items-center overflow-hidden border-t-2 border-mercavejo-gold shadow-[0_-10px_50px_rgba(0,43,69,0.4)]">
         <div className="whitespace-nowrap animate-marquee flex items-center gap-20 text-white font-black text-sm uppercase tracking-[0.1em]">
           {data.concat(data).map((item, i) => (
             <span key={i} className="flex items-center gap-4">
-              <span className="text-blue-300 text-xl">★</span> 
+              <span className="text-mercavejo-gold text-xl">★</span> 
               <span className="text-white">{item.name}</span> 
-              <span className="bg-blue-800/50 px-3 py-1 rounded-full border border-blue-400/30">{formatDuration(item.originalValue)}</span>
+              <span className="bg-mercavejo-dark/50 px-3 py-1 rounded-full border border-mercavejo-gold/30">{formatDuration(item.originalValue)}</span>
             </span>
           ))}
         </div>

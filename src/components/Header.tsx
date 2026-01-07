@@ -72,26 +72,29 @@ const Header = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           <div className="flex items-center">
-            <Link to="/" className="flex items-center space-x-2">
-              <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-                <Clock className="w-5 h-5 text-white" />
+            <Link to="/" className="flex items-center space-x-3">
+              <div className="w-10 h-10 bg-mercavejo-blue rounded-xl flex items-center justify-center shadow-lg shadow-blue-900/20">
+                <Monitor className="w-6 h-6 text-mercavejo-gold" />
               </div>
-              <span className="text-xl font-semibold text-gray-900">Mercavejo</span>
+              <div className="flex flex-col leading-none">
+                <span className="text-lg font-black text-mercavejo-blue tracking-tighter uppercase">Mercavejo</span>
+                <span className="text-[10px] font-bold text-mercavejo-gold tracking-[0.2em] uppercase">Productivity</span>
+              </div>
             </Link>
           </div>
 
           {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center space-x-4">
+          <nav className="hidden md:flex items-center space-x-2">
             {navigation.map((item) => {
               const Icon = item.icon;
               return (
                 <Link
                   key={item.name}
                   to={item.href}
-                  className={`flex items-center space-x-1 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                  className={`flex items-center space-x-2 px-4 py-2 rounded-xl text-sm font-black transition-all uppercase tracking-wider ${
                     isActive(item.href)
-                      ? 'text-blue-600 bg-blue-50'
-                      : 'text-gray-700 hover:text-blue-600 hover:bg-gray-50'
+                      ? 'text-white bg-mercavejo-blue shadow-md'
+                      : 'text-mercavejo-blue hover:bg-gray-100'
                   }`}
                 >
                   <Icon className="w-4 h-4" />
@@ -104,38 +107,31 @@ const Header = () => {
             
             {user ? (
               <div className="flex items-center space-x-3">
-                <div className="flex items-center space-x-2 text-sm text-gray-600">
+                <div className="flex items-center space-x-2 text-sm font-bold text-mercavejo-blue">
                   {user.user_metadata?.avatar_url ? (
-                    <img src={user.user_metadata.avatar_url} alt="Avatar" className="w-6 h-6 rounded-full" />
+                    <img src={user.user_metadata.avatar_url} alt="Avatar" className="w-8 h-8 rounded-full border-2 border-mercavejo-gold" />
                   ) : (
-                    <User className="w-4 h-4" />
+                    <div className="w-8 h-8 rounded-full bg-mercavejo-gold/20 flex items-center justify-center">
+                      <User className="w-4 h-4 text-mercavejo-gold" />
+                    </div>
                   )}
-                  <span className="max-w-[100px] truncate">{user.email}</span>
                 </div>
                 <button
                   onClick={handleLogout}
-                  className="flex items-center space-x-1 px-3 py-2 rounded-md text-sm font-medium text-red-600 hover:bg-red-50 transition-colors"
+                  className="p-2 text-red-600 hover:bg-red-50 rounded-xl transition-colors"
+                  title="Sair"
                 >
-                  <LogOut className="w-4 h-4" />
-                  <span>Sair</span>
+                  <LogOut className="w-5 h-5" />
                 </button>
               </div>
             ) : (
-              <div className="flex items-center space-x-2">
-                <button
-                  onClick={handleLogin}
-                  className="flex items-center space-x-1 px-3 py-2 rounded-md text-sm font-medium text-blue-600 hover:bg-blue-50 transition-colors border border-blue-100"
-                >
-                  <img src="https://www.google.com/favicon.ico" alt="Google" className="w-4 h-4" />
-                  <span>Google</span>
-                </button>
-                <button
-                  onClick={handleEmailLogin}
-                  className="text-xs text-gray-500 hover:text-blue-600 underline"
-                >
-                  Email
-                </button>
-              </div>
+              <button
+                onClick={handleLogin}
+                className="flex items-center space-x-2 bg-mercavejo-blue text-white px-4 py-2 rounded-xl font-bold text-sm hover:bg-mercavejo-dark transition-all shadow-md"
+              >
+                <img src="https://www.google.com/favicon.ico" alt="Google" className="w-4 h-4" />
+                <span>Entrar</span>
+              </button>
             )}
           </nav>
 
@@ -143,9 +139,7 @@ const Header = () => {
           <div className="md:hidden">
             <button
               onClick={() => setIsMenuOpen(!isMenuOpen)}
-              className="p-2 rounded-md text-gray-700 hover:text-blue-600 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              aria-expanded={isMenuOpen}
-              aria-label="Menu principal"
+              className="p-2 rounded-xl text-mercavejo-blue hover:bg-gray-100 focus:outline-none"
             >
               {isMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
             </button>
@@ -154,8 +148,8 @@ const Header = () => {
 
         {/* Mobile Navigation */}
         {isMenuOpen && (
-          <div className="md:hidden border-t border-gray-200 py-2">
-            <nav className="space-y-1">
+          <div className="md:hidden border-t border-gray-100 py-4 pb-6">
+            <nav className="space-y-2">
               {navigation.map((item) => {
                 const Icon = item.icon;
                 return (
@@ -163,10 +157,10 @@ const Header = () => {
                     key={item.name}
                     to={item.href}
                     onClick={() => setIsMenuOpen(false)}
-                    className={`flex items-center space-x-3 px-3 py-2 rounded-md text-base font-medium transition-colors ${
+                    className={`flex items-center space-x-4 px-4 py-3 rounded-xl text-base font-black uppercase tracking-widest transition-all ${
                       isActive(item.href)
-                        ? 'text-blue-600 bg-blue-50'
-                        : 'text-gray-700 hover:text-blue-600 hover:bg-gray-50'
+                        ? 'text-white bg-mercavejo-blue'
+                        : 'text-mercavejo-blue hover:bg-gray-50'
                     }`}
                   >
                     <Icon className="w-5 h-5" />
@@ -175,28 +169,22 @@ const Header = () => {
                 );
               })}
               
-              <div className="border-t border-gray-100 my-2 pt-2">
+              <div className="pt-4 mt-4 border-t border-gray-100">
                 {user ? (
-                  <>
-                    <div className="flex items-center space-x-3 px-3 py-2 text-gray-600">
-                      <User className="w-5 h-5" />
-                      <span className="text-base font-medium truncate">{user.email}</span>
-                    </div>
-                    <button
-                      onClick={() => { handleLogout(); setIsMenuOpen(false); }}
-                      className="w-full flex items-center space-x-3 px-3 py-2 rounded-md text-base font-medium text-red-600 hover:bg-red-50 transition-colors"
-                    >
-                      <LogOut className="w-5 h-5" />
-                      <span>Sair</span>
-                    </button>
-                  </>
+                  <button
+                    onClick={() => { handleLogout(); setIsMenuOpen(false); }}
+                    className="w-full flex items-center space-x-4 px-4 py-3 rounded-xl text-base font-black uppercase tracking-widest text-red-600 hover:bg-red-50 transition-all"
+                  >
+                    <LogOut className="w-5 h-5" />
+                    <span>Sair da Conta</span>
+                  </button>
                 ) : (
                   <button
                     onClick={() => { handleLogin(); setIsMenuOpen(false); }}
-                    className="w-full flex items-center space-x-3 px-3 py-2 rounded-md text-base font-medium text-blue-600 hover:bg-blue-50 transition-colors"
+                    className="w-full flex items-center space-x-4 px-4 py-3 rounded-xl text-base font-black uppercase tracking-widest bg-mercavejo-blue text-white shadow-lg"
                   >
                     <LogIn className="w-5 h-5" />
-                    <span>Entrar</span>
+                    <span>Entrar com Google</span>
                   </button>
                 )}
               </div>
