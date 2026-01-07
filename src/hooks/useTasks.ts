@@ -121,6 +121,30 @@ export function useTasks() {
     }
   };
 
+  const deleteTask = async (taskId: string) => {
+    // Atualizar estado local imediatamente
+    const updatedTasks = tasks.filter(t => t.id !== taskId);
+    setTasks(updatedTasks);
+    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(updatedTasks));
+
+    // Se logado, deletar no Supabase
+    if (user) {
+      try {
+        // No Supabase, o ID é UUID, mas localmente usamos Date.now().toString()
+        // Precisamos garantir que estamos deletando pelo ID correto.
+        // Se a tarefa veio do Supabase, o ID será o UUID.
+        const { error } = await supabase.from('tasks').delete().eq('id', taskId);
+        if (error) throw error;
+        toast.success('Tarefa removida');
+      } catch (error) {
+        console.error('Erro ao deletar no Supabase:', error);
+        toast.error('Erro ao remover da nuvem');
+      }
+    } else {
+      toast.success('Tarefa removida localmente');
+    }
+  };
+
   const clearTasks = async () => {
     if (user) {
       const { error } = await supabase.from('tasks').delete().eq('user_id', user.id);
@@ -134,5 +158,5 @@ export function useTasks() {
     toast.success('Histórico limpo com sucesso');
   };
 
-  return { tasks, loading, addTask, clearTasks, user };
+  return { tasks, loading, addTask, deleteTask, clearTasks, user };
 }

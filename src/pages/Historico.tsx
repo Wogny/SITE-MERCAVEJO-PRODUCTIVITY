@@ -7,7 +7,7 @@ import { ptBR } from 'date-fns/locale';
 import { useTasks } from '../hooks/useTasks';
 
 export default function Historico() {
-  const { tasks, loading } = useTasks();
+  const { tasks, loading, deleteTask } = useTasks();
 
   const handleExport = () => {
     if (tasks.length === 0) {
@@ -60,7 +60,7 @@ export default function Historico() {
         {loading ? (
           <div className="text-center py-12 text-gray-500">Carregando histórico...</div>
         ) : (
-          <TaskHistory tasks={tasks} onExport={handleExport} />
+          <TaskHistory tasks={tasks} onExport={handleExport} onDelete={deleteTask} />
         )}
       </main>
     </div>

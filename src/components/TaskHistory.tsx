@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Search, Download, Calendar, Building2, Clock } from 'lucide-react';
+import { Search, Download, Calendar, Building2, Clock, Trash2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
@@ -14,9 +14,10 @@ interface Task {
 interface TaskHistoryProps {
   tasks: Task[];
   onExport: () => void;
+  onDelete?: (taskId: string) => void;
 }
 
-const TaskHistory: React.FC<TaskHistoryProps> = ({ tasks, onExport }) => {
+const TaskHistory: React.FC<TaskHistoryProps> = ({ tasks, onExport, onDelete }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterCompany, setFilterCompany] = useState('');
   const [filterDate, setFilterDate] = useState('');
@@ -131,11 +132,26 @@ const TaskHistory: React.FC<TaskHistoryProps> = ({ tasks, onExport }) => {
                     </span>
                   </div>
                 </div>
-                <div className="flex items-center space-x-2">
-                  <Clock className="w-4 h-4 text-blue-600" />
-                  <span className="font-mono font-medium text-blue-600">
-                    {formatDuration(task.duration)}
-                  </span>
+                <div className="flex items-center space-x-4">
+                  <div className="flex items-center space-x-2">
+                    <Clock className="w-4 h-4 text-blue-600" />
+                    <span className="font-mono font-medium text-blue-600">
+                      {formatDuration(task.duration)}
+                    </span>
+                  </div>
+                  {onDelete && (
+                    <button
+                      onClick={() => {
+                        if (window.confirm('Deseja realmente excluir esta tarefa?')) {
+                          onDelete(task.id);
+                        }
+                      }}
+                      className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-full transition-colors"
+                      title="Excluir tarefa"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  )}
                 </div>
               </div>
             </div>
