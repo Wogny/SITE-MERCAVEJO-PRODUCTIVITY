@@ -71,13 +71,19 @@ export default function TVDashboard() {
       <div className="flex justify-between items-center border-b border-slate-800 pb-4 mb-6">
         <div className="flex items-center gap-4">
           <div className="bg-red-600 text-white px-3 py-1 rounded text-xs font-black animate-pulse">LIVE</div>
-          <h1 className="text-3xl font-black tracking-tighter">MERCAVEJO <span className="text-blue-500">PRODUCTIVITY</span></h1>
-          <div className={`flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold ${isConnected ? 'bg-emerald-500/10 text-emerald-500' : 'b            MERCAVEJO <span className="text-mercavejo-gold">PRODUCTIVITY</span></h1>
-          <p className="text-slate-400 font-mono uppercase tracking-widest text-sm mt-1">Monitoramento de Produtividade em Tempo Real</p>
+          <h1 className="text-3xl font-black tracking-tighter uppercase">
+            MERCAVEJO <span className="text-mercavejo-gold">PRODUCTIVITY</span>
+          </h1>
+          <div className={`flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold ${isConnected ? 'bg-emerald-500/10 text-emerald-500' : 'bg-red-500/10 text-red-500'}`}>
+            {isConnected ? <Wifi className="w-3 h-3" /> : <WifiOff className="w-3 h-3" />}
+            {isConnected ? 'REALTIME ACTIVE' : 'RECONNECTING...'}
+          </div>
         </div>
         <div className="text-right font-mono">
           <div className="text-4xl font-black leading-none text-white">{currentTime.toLocaleTimeString()}</div>
-          <div className="text-mercavejo-gold text-sm uppercase tracking-widest font-bold">{currentTime.toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' })}</div>
+          <div className="text-mercavejo-gold text-sm uppercase tracking-widest font-bold">
+            {currentTime.toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' })}
+          </div>
         </div>
       </div>
 
@@ -103,7 +109,8 @@ export default function TVDashboard() {
       <div className="flex-1 grid grid-cols-3 gap-6 min-h-0 mb-12">
         {/* Chart Container */}
         <div className="col-span-2 bg-slate-900/80 border border-slate-700 p-8 rounded-3xl flex flex-col shadow-2xl">
-          <h3 className="text-xl font-black mb-6 text-mercavejo-gold uppercase tracking-[0.2em]">Horas por Cliente</h3>div className="flex-1 min-h-0">
+          <h3 className="text-xl font-black mb-6 text-mercavejo-gold uppercase tracking-[0.2em]">Horas por Cliente</h3>
+          <div className="flex-1 min-h-0">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={data} layout="vertical" margin={{ left: 40, right: 60, top: 0, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#334155" horizontal={false} />
@@ -132,7 +139,7 @@ export default function TVDashboard() {
 
         {/* Ranking Container */}
         <div className="bg-slate-900/80 border border-slate-700 p-8 rounded-3xl flex flex-col shadow-2xl">
-          <h3 className="text-xl font-black mb-6 text-blue-400 uppercase tracking-[0.2em]">Ranking</h3>
+          <h3 className="text-xl font-black mb-6 text-mercavejo-gold uppercase tracking-[0.2em]">Ranking</h3>
           <div className="flex-1 overflow-y-auto space-y-4 pr-2 custom-scrollbar">
             {data.map((item, index) => (
               <div key={item.name} className="flex items-center justify-between p-5 bg-slate-800/50 rounded-2xl border border-slate-600/50 hover:border-blue-500/50 transition-colors">
@@ -142,7 +149,9 @@ export default function TVDashboard() {
                 </div>
                 <div className="text-right">
                   <div className="text-emerald-400 font-black text-2xl">{item.value}h</div>
-                  <div className="text-xs text-slate-500 font-bold uppercase">{Math.round((item.originalValue / stats.totalTime) * 100)}%</div>
+                  <div className="text-xs text-slate-500 font-bold uppercase">
+                    {stats.totalTime > 0 ? Math.round((item.originalValue / stats.totalTime) * 100) : 0}%
+                  </div>
                 </div>
               </div>
             ))}
@@ -157,7 +166,9 @@ export default function TVDashboard() {
             <span key={i} className="flex items-center gap-4">
               <span className="text-mercavejo-gold text-xl">★</span> 
               <span className="text-white">{item.name}</span> 
-              <span className="bg-mercavejo-dark/50 px-3 py-1 rounded-full border border-mercavejo-gold/30">{formatDuration(item.originalValue)}</span>
+              <span className="bg-mercavejo-dark/50 px-3 py-1 rounded-full border border-mercavejo-gold/30">
+                {formatDuration(item.originalValue)}
+              </span>
             </span>
           ))}
         </div>
