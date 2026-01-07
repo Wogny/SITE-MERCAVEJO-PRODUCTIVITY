@@ -1,35 +1,13 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import Header from '../components/Header';
 import TaskHistory from '../components/TaskHistory';
 import { toast } from 'react-toastify';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-
-interface Task {
-  id: string;
-  taskName: string;
-  company: string;
-  duration: number;
-  timestamp: Date;
-}
+import { useTasks } from '../hooks/useTasks';
 
 export default function Historico() {
-  const [tasks, setTasks] = useState<Task[]>([]);
-
-  useEffect(() => {
-    const savedTasks = localStorage.getItem('mercavejo-tasks');
-    if (savedTasks) {
-      try {
-        const parsedTasks = JSON.parse(savedTasks).map((task: any) => ({
-          ...task,
-          timestamp: new Date(task.timestamp)
-        }));
-        setTasks(parsedTasks);
-      } catch (error) {
-        console.error('Error loading tasks:', error);
-      }
-    }
-  }, []);
+  const { tasks, loading } = useTasks();
 
   const handleExport = () => {
     if (tasks.length === 0) {
@@ -79,7 +57,11 @@ export default function Historico() {
           <p className="text-gray-600">Visualize e gerencie seu histórico de tarefas</p>
         </div>
         
-        <TaskHistory tasks={tasks} onExport={handleExport} />
+        {loading ? (
+          <div className="text-center py-12 text-gray-500">Carregando histórico...</div>
+        ) : (
+          <TaskHistory tasks={tasks} onExport={handleExport} />
+        )}
       </main>
     </div>
   );

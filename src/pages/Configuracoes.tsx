@@ -1,24 +1,26 @@
 import React from 'react';
 import Header from '../components/Header';
-import { Settings, User, Bell, Download, Trash2 } from 'lucide-react';
+import { Settings, User, Bell, Download, Trash2, LogIn, LogOut } from 'lucide-react';
 import { toast } from 'react-toastify';
+import { useTasks } from '../hooks/useTasks';
+import { supabase } from '../lib/supabase';
 
 export default function Configuracoes() {
-  const handleClearData = () => {
+  const { tasks, clearTasks, user } = useTasks();
+
+  const handleClearData = async () => {
     if (window.confirm('Tem certeza que deseja limpar todos os dados? Esta ação não pode ser desfeita.')) {
-      localStorage.removeItem('mercavejo-tasks');
-      toast.success('Dados limpos com sucesso!');
+      await clearTasks();
     }
   };
 
   const handleExportData = () => {
-    const savedTasks = localStorage.getItem('mercavejo-tasks');
-    if (!savedTasks) {
+    if (tasks.length === 0) {
       toast.warning('Nenhum dado para exportar');
       return;
     }
 
-    const blob = new Blob([savedTasks], { type: 'application/json' });
+    const blob = new Blob([JSON.stringify(tasks)], { type: 'application/json' });
     const link = document.createElement('a');
     const url = URL.createObjectURL(blob);
     link.setAttribute('href', url);
@@ -29,6 +31,27 @@ export default function Configuracoes() {
     document.body.removeChild(link);
 
     toast.success('Backup exportado com sucesso!');
+  };
+
+  const handleLogin = async () => {
+    const email = window.prompt('Digite seu email para o link de login:');
+    if (email) {
+      const { error } = await supabase.auth.signInWithOtp({ email });
+      if (error) {
+        toast.error('Erro ao enviar link de login');
+      } else {
+        toast.success('Link de login enviado para seu email!');
+      }
+    }
+  };
+
+  const handleLogout = async () => {
+    const { error } = await supabase.auth.signOut();
+    if (error) {
+      toast.error('Erro ao sair');
+    } else {
+      toast.success('Sessão encerrada');
+    }
   };
 
   return (
@@ -48,59 +71,30 @@ export default function Configuracoes() {
               <h2 className="text-lg font-semibold text-gray-900">Perfil</h2>
             </div>
             <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Nome
-                </label>
-                <input
-                  type="text"
-                  placeholder="Seu nome"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Email
-                </label>
-                <input
-                  type="email"
-                  placeholder="seu@email.com"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
-              </div>
-              <button className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500">
-                Salvar Perfil
-              </button>
-            </div>
-          </div>
-
-          {/* Notifications Section */}
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <div className="flex items-center space-x-3 mb-4">
-              <Bell className="w-5 h-5 text-gray-600" />
-              <h2 className="text-lg font-semibold text-gray-900">Notificações</h2>
-            </div>
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="font-medium text-gray-900">Lembrete de pausas</p>
-                  <p className="text-sm text-gray-600">Receba lembretes para fazer pausas regulares</p>
+              {user ? (
+                <div className="p-4 bg-blue-50 rounded-lg border border-blue-100">
+                  <p className="text-sm text-blue-800 font-medium">Logado como:</p>
+                  <p className="text-lg text-blue-900">{user.email}</p>
+                  <button 
+                    onClick={handleLogout}
+                    className="mt-4 flex items-center space-x-2 text-red-600 hover:text-red-700 font-medium"
+                  >
+                    <LogOut className="w-4 h-4" />
+                    <span>Encerrar Sessão</span>
+                  </button>
                 </div>
-                <label className="relative inline-flex items-center cursor-pointer">
-                  <input type="checkbox" className="sr-only peer" />
-                  <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
-                </label>
-              </div>
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="font-medium text-gray-900">Relatórios semanais</p>
-                  <p className="text-sm text-gray-600">Receba um resumo semanal da sua produtividade</p>
+              ) : (
+                <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+                  <p className="text-sm text-gray-600 mb-4">Você não está logado. Seus dados estão sendo salvos apenas localmente.</p>
+                  <button 
+                    onClick={handleLogin}
+                    className="flex items-center space-x-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors"
+                  >
+                    <LogIn className="w-4 h-4" />
+                    <span>Fazer Login</span>
+                  </button>
                 </div>
-                <label className="relative inline-flex items-center cursor-pointer">
-                  <input type="checkbox" className="sr-only peer" />
-                  <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
-                </label>
-              </div>
+              )}
             </div>
           </div>
 
@@ -127,7 +121,7 @@ export default function Configuracoes() {
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-2 sm:space-y-0">
                 <div>
                   <p className="font-medium text-gray-900">Limpar todos os dados</p>
-                  <p className="text-sm text-gray-600">Remove permanentemente todos os registros</p>
+                  <p className="text-sm text-gray-600">Remove permanentemente todos os registros {user ? 'da nuvem e localmente' : 'localmente'}</p>
                 </div>
                 <button
                   onClick={handleClearData}
@@ -135,24 +129,6 @@ export default function Configuracoes() {
                 >
                   <Trash2 className="w-4 h-4" />
                   <span>Limpar Dados</span>
-                </button>
-              </div>
-            </div>
-          </div>
-
-          {/* Authentication Section */}
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">Autenticação</h2>
-            <div className="text-center py-8">
-              <p className="text-gray-500 mb-4">
-                Use Meku para gerar funcionalidade de autenticação com Google/Email
-              </p>
-              <div className="space-y-2">
-                <button className="w-full bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500">
-                  Conectar com Google
-                </button>
-                <button className="w-full bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-gray-500">
-                  Login com Email
                 </button>
               </div>
             </div>
