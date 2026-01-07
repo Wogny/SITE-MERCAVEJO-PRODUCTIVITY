@@ -22,7 +22,19 @@ const Header = () => {
   }, []);
 
   const handleLogin = async () => {
-    // Exemplo simples de login (pode ser expandido para Google, etc)
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: window.location.origin
+      }
+    });
+    
+    if (error) {
+      toast.error('Erro ao conectar com Google');
+    }
+  };
+
+  const handleEmailLogin = async () => {
     const email = window.prompt('Digite seu email para o link de login:');
     if (email) {
       const { error } = await supabase.auth.signInWithOtp({ email });
@@ -92,7 +104,11 @@ const Header = () => {
             {user ? (
               <div className="flex items-center space-x-3">
                 <div className="flex items-center space-x-2 text-sm text-gray-600">
-                  <User className="w-4 h-4" />
+                  {user.user_metadata?.avatar_url ? (
+                    <img src={user.user_metadata.avatar_url} alt="Avatar" className="w-6 h-6 rounded-full" />
+                  ) : (
+                    <User className="w-4 h-4" />
+                  )}
                   <span className="max-w-[100px] truncate">{user.email}</span>
                 </div>
                 <button
@@ -104,13 +120,21 @@ const Header = () => {
                 </button>
               </div>
             ) : (
-              <button
-                onClick={handleLogin}
-                className="flex items-center space-x-1 px-3 py-2 rounded-md text-sm font-medium text-blue-600 hover:bg-blue-50 transition-colors"
-              >
-                <LogIn className="w-4 h-4" />
-                <span>Entrar</span>
-              </button>
+              <div className="flex items-center space-x-2">
+                <button
+                  onClick={handleLogin}
+                  className="flex items-center space-x-1 px-3 py-2 rounded-md text-sm font-medium text-blue-600 hover:bg-blue-50 transition-colors border border-blue-100"
+                >
+                  <img src="https://www.google.com/favicon.ico" alt="Google" className="w-4 h-4" />
+                  <span>Google</span>
+                </button>
+                <button
+                  onClick={handleEmailLogin}
+                  className="text-xs text-gray-500 hover:text-blue-600 underline"
+                >
+                  Email
+                </button>
+              </div>
             )}
           </nav>
 

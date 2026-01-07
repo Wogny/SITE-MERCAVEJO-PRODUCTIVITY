@@ -33,7 +33,17 @@ export default function Configuracoes() {
     toast.success('Backup exportado com sucesso!');
   };
 
-  const handleLogin = async () => {
+  const handleGoogleLogin = async () => {
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: window.location.origin
+      }
+    });
+    if (error) toast.error('Erro ao conectar com Google');
+  };
+
+  const handleEmailLogin = async () => {
     const email = window.prompt('Digite seu email para o link de login:');
     if (email) {
       const { error } = await supabase.auth.signInWithOtp({ email });
@@ -86,13 +96,22 @@ export default function Configuracoes() {
               ) : (
                 <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
                   <p className="text-sm text-gray-600 mb-4">Você não está logado. Seus dados estão sendo salvos apenas localmente.</p>
-                  <button 
-                    onClick={handleLogin}
-                    className="flex items-center space-x-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors"
-                  >
-                    <LogIn className="w-4 h-4" />
-                    <span>Fazer Login</span>
-                  </button>
+                  <div className="flex flex-col space-y-2">
+                    <button 
+                      onClick={handleGoogleLogin}
+                      className="flex items-center justify-center space-x-2 bg-white border border-gray-300 text-gray-700 px-4 py-2 rounded-lg font-medium hover:bg-gray-50 transition-colors"
+                    >
+                      <img src="https://www.google.com/favicon.ico" alt="Google" className="w-4 h-4" />
+                      <span>Entrar com Google</span>
+                    </button>
+                    <button 
+                      onClick={handleEmailLogin}
+                      className="flex items-center justify-center space-x-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors"
+                    >
+                      <LogIn className="w-4 h-4" />
+                      <span>Entrar com Email</span>
+                    </button>
+                  </div>
                 </div>
               )}
             </div>

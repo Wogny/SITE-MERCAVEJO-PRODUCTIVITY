@@ -41,7 +41,7 @@ create policy "Users can delete their own tasks"
 
 Crie um arquivo `.env` na raiz do seu projeto (use o `.env.example` como base) e adicione suas credenciais:
 
-```env
+```
 VITE_SUPABASE_URL=https://seu-projeto.supabase.co
 VITE_SUPABASE_ANON_KEY=sua-chave-anonima-aqui
 ```
@@ -50,4 +50,5 @@ Você pode encontrar essas informações em **Project Settings > API** no painel
 
 ## 3. Autenticação
 
-A implementação atual usa **Magic Links** (Email OTP). Certifique-se de que o provedor de Email está habilitado em **Authentication > Providers** no Supabase.
+A implementação atual usa **Magic Links** (Email OTP ). Certifique-se de que o provedor de Email está habilitado em **Authentication > Providers** no Supabase.
+
