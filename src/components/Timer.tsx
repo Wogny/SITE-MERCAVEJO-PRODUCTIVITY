@@ -16,6 +16,8 @@ const Timer: React.FC<TimerProps> = ({ onTaskComplete }) => {
   const [isRunning, setIsRunning] = useState(false);
   const [taskName, setTaskName] = useState('');
   const [company, setCompany] = useState('');
+  const [startTime, setStartTime] = useState<number | null>(null);
+  const [accumulatedTime, setAccumulatedTime] = useState(0);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
   const companies = [
@@ -37,9 +39,11 @@ const Timer: React.FC<TimerProps> = ({ onTaskComplete }) => {
   ];
 
   useEffect(() => {
-    if (isRunning) {
+    if (isRunning && startTime) {
       intervalRef.current = setInterval(() => {
-        setTime(prevTime => prevTime + 1);
+        const now = Date.now();
+        const elapsed = Math.floor((now - startTime) / 1000);
+        setTime(accumulatedTime + elapsed);
       }, 1000);
     } else {
       if (intervalRef.current) {
@@ -52,7 +56,7 @@ const Timer: React.FC<TimerProps> = ({ onTaskComplete }) => {
         clearInterval(intervalRef.current);
       }
     };
-  }, [isRunning]);
+  }, [isRunning, startTime, accumulatedTime]);
 
   const formatTime = (seconds: number) => {
     const hours = Math.floor(seconds / 3600);
@@ -70,26 +74,42 @@ const Timer: React.FC<TimerProps> = ({ onTaskComplete }) => {
       toast.error('Por favor, selecione ou insira a empresa/cliente');
       return;
     }
+    setStartTime(Date.now());
     setIsRunning(true);
     toast.success('Timer iniciado!');
   };
 
   const handlePause = () => {
+    if (startTime) {
+      const now = Date.now();
+      const elapsed = Math.floor((now - startTime) / 1000);
+      setAccumulatedTime(prev => prev + elapsed);
+    }
     setIsRunning(false);
+    setStartTime(null);
     toast.info('Timer pausado');
   };
 
   const handleStop = () => {
-    if (time > 0 && taskName.trim() && company.trim()) {
+    let finalTime = time;
+    if (isRunning && startTime) {
+      const now = Date.now();
+      const elapsed = Math.floor((now - startTime) / 1000);
+      finalTime = accumulatedTime + elapsed;
+    }
+
+    if (finalTime > 0 && taskName.trim() && company.trim()) {
       onTaskComplete({
         taskName: taskName.trim(),
         company: company.trim(),
-        duration: time,
+        duration: finalTime,
         timestamp: new Date()
       });
       toast.success('Tarefa salva com sucesso!');
     }
     setIsRunning(false);
+    setStartTime(null);
+    setAccumulatedTime(0);
     setTime(0);
     setTaskName('');
     setCompany('');
@@ -97,6 +117,8 @@ const Timer: React.FC<TimerProps> = ({ onTaskComplete }) => {
 
   const handleReset = () => {
     setIsRunning(false);
+    setStartTime(null);
+    setAccumulatedTime(0);
     setTime(0);
     toast.info('Timer resetado');
   };
