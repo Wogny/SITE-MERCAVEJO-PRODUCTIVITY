@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Menu, X, Clock, BarChart3, History, Settings, LogIn, LogOut, User } from 'lucide-react';
+import { Menu, X, Clock, BarChart3, History, Settings, LogIn, LogOut, User, Monitor } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { toast } from 'react-toastify';
@@ -60,6 +60,7 @@ const Header = () => {
     { name: 'Dashboard', href: '/dashboard', icon: BarChart3 },
     { name: 'Histórico', href: '/historico', icon: History },
     { name: 'Configurações', href: '/configuracoes', icon: Settings },
+    { name: 'TV Mode', href: '/tv', icon: Monitor },
   ];
 
   const isActive = (href: string) => {
