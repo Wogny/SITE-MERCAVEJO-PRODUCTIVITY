@@ -73,10 +73,7 @@ export function useTasks() {
             user_id: t.user_id
           }));
 
-          // Mesclar (prioridade para o que for mais recente ou remoto)
-          // Para simplificar, vamos usar os dados do Supabase como fonte da verdade se logado
           setTasks(remoteTasks);
-          // Atualizar localStorage com dados remotos para manter sync offline
           localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(remoteTasks));
         }
       } catch (error) {
@@ -97,12 +94,10 @@ export function useTasks() {
       user_id: user?.id
     };
 
-    // Atualizar estado local imediatamente (UI responsiva)
     const updatedTasks = [...tasks, newTask];
     setTasks(updatedTasks);
     localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(updatedTasks));
 
-    // Se logado, salvar no Supabase
     if (user) {
       try {
         const { error } = await supabase.from('tasks').insert([{
@@ -122,17 +117,12 @@ export function useTasks() {
   };
 
   const deleteTask = async (taskId: string) => {
-    // Atualizar estado local imediatamente
     const updatedTasks = tasks.filter(t => t.id !== taskId);
     setTasks(updatedTasks);
     localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(updatedTasks));
 
-    // Se logado, deletar no Supabase
     if (user) {
       try {
-        // No Supabase, o ID é UUID, mas localmente usamos Date.now().toString()
-        // Precisamos garantir que estamos deletando pelo ID correto.
-        // Se a tarefa veio do Supabase, o ID será o UUID.
         const { error } = await supabase.from('tasks').delete().eq('id', taskId);
         if (error) throw error;
         toast.success('Tarefa removida');
@@ -142,6 +132,36 @@ export function useTasks() {
       }
     } else {
       toast.success('Tarefa removida localmente');
+    }
+  };
+
+  const updateTask = async (taskId: string, updates: { taskName: string, company: string }) => {
+    // Atualizar estado local
+    const updatedTasks = tasks.map(t => 
+      t.id === taskId ? { ...t, ...updates } : t
+    );
+    setTasks(updatedTasks);
+    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(updatedTasks));
+
+    // Se logado, atualizar no Supabase
+    if (user) {
+      try {
+        const { error } = await supabase
+          .from('tasks')
+          .update({
+            task_name: updates.taskName,
+            company: updates.company
+          })
+          .eq('id', taskId);
+        
+        if (error) throw error;
+        toast.success('Tarefa atualizada');
+      } catch (error) {
+        console.error('Erro ao atualizar no Supabase:', error);
+        toast.error('Erro ao atualizar na nuvem');
+      }
+    } else {
+      toast.success('Tarefa atualizada localmente');
     }
   };
 
@@ -158,5 +178,5 @@ export function useTasks() {
     toast.success('Histórico limpo com sucesso');
   };
 
-  return { tasks, loading, addTask, deleteTask, clearTasks, user };
+  return { tasks, loading, addTask, deleteTask, updateTask, clearTasks, user };
 }
