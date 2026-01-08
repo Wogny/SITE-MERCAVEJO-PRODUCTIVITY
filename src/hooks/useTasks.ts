@@ -59,7 +59,7 @@ export function useTasks() {
 
         if (data) {
           const remoteTasks = data.map(t => ({
-            id: t.id, // Aqui pegamos o UUID real do Supabase
+            id: t.id,
             taskName: t.task_name,
             company: t.company,
             duration: t.duration,
@@ -156,5 +156,21 @@ export function useTasks() {
     toast.success('Tarefa atualizada');
   };
 
-  return { tasks, loading, addTask, deleteTask, updateTask, user };
+  const clearTasks = async () => {
+    if (user) {
+      try {
+        const { error } = await supabase.from('tasks').delete().eq('user_id', user.id);
+        if (error) throw error;
+      } catch (error) {
+        console.error(error);
+        toast.error('Erro ao limpar nuvem');
+        return;
+      }
+    }
+    setTasks([]);
+    localStorage.removeItem(LOCAL_STORAGE_KEY);
+    toast.success('Histórico limpo');
+  };
+
+  return { tasks, loading, addTask, deleteTask, updateTask, clearTasks, user };
 }
