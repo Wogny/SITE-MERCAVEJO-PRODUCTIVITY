@@ -19,7 +19,6 @@ export function useTasks() {
   const [user, setUser] = useState<any>(null);
 
   useEffect(() => {
-    // Verificar sessão do usuário
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null);
     });
@@ -37,8 +36,6 @@ export function useTasks() {
 
   const loadTasks = async () => {
     setLoading(true);
-    
-    // 1. Carregar do LocalStorage (sempre disponível)
     const savedTasks = localStorage.getItem(LOCAL_STORAGE_KEY);
     let localTasks: Task[] = [];
     if (savedTasks) {
@@ -47,12 +44,9 @@ export function useTasks() {
           ...task,
           timestamp: new Date(task.timestamp)
         }));
-      } catch (e) {
-        console.error('Erro ao ler localStorage', e);
-      }
+      } catch (e) { console.error(e); }
     }
 
-    // 2. Se logado, carregar do Supabase e mesclar
     if (user) {
       try {
         const { data, error } = await supabase
@@ -65,85 +59,79 @@ export function useTasks() {
 
         if (data) {
           const remoteTasks = data.map(t => ({
-            id: t.id,
+            id: t.id, // Aqui pegamos o UUID real do Supabase
             taskName: t.task_name,
             company: t.company,
             duration: t.duration,
             timestamp: new Date(t.timestamp),
             user_id: t.user_id
           }));
-
           setTasks(remoteTasks);
           localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(remoteTasks));
         }
       } catch (error) {
-        console.error('Erro ao carregar do Supabase:', error);
+        console.error(error);
         setTasks(localTasks);
       }
     } else {
       setTasks(localTasks);
     }
-    
     setLoading(false);
   };
 
   const addTask = async (taskData: Omit<Task, 'id'>) => {
-    const newTask: Task = {
-      ...taskData,
-      id: Date.now().toString(),
-      user_id: user?.id
-    };
-
-    const updatedTasks = [...tasks, newTask];
-    setTasks(updatedTasks);
-    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(updatedTasks));
-
     if (user) {
       try {
-        const { error } = await supabase.from('tasks').insert([{
-          task_name: newTask.taskName,
-          company: newTask.company,
-          duration: newTask.duration,
-          timestamp: newTask.timestamp.toISOString(),
+        const { data, error } = await supabase.from('tasks').insert([{
+          task_name: taskData.taskName,
+          company: taskData.company,
+          duration: taskData.duration,
+          timestamp: taskData.timestamp.toISOString(),
           user_id: user.id
-        }]);
+        }]).select();
 
         if (error) throw error;
+        
+        if (data && data[0]) {
+          const newTask = {
+            id: data[0].id,
+            ...taskData,
+            user_id: user.id
+          };
+          const updated = [newTask, ...tasks];
+          setTasks(updated);
+          localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(updated));
+        }
       } catch (error) {
-        console.error('Erro ao salvar no Supabase:', error);
-        toast.warn('Salvo localmente, mas houve erro na sincronização com a nuvem.');
+        console.error(error);
+        toast.error('Erro ao salvar na nuvem');
       }
+    } else {
+      const newTask = { ...taskData, id: Date.now().toString() };
+      const updated = [newTask, ...tasks];
+      setTasks(updated);
+      localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(updated));
     }
   };
 
   const deleteTask = async (taskId: string) => {
-    const updatedTasks = tasks.filter(t => t.id !== taskId);
-    setTasks(updatedTasks);
-    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(updatedTasks));
-
     if (user) {
       try {
         const { error } = await supabase.from('tasks').delete().eq('id', taskId);
         if (error) throw error;
-        toast.success('Tarefa removida');
       } catch (error) {
-        console.error('Erro ao deletar no Supabase:', error);
-        toast.error('Erro ao remover da nuvem');
+        console.error(error);
+        toast.error('Erro ao deletar na nuvem');
+        return;
       }
-    } else {
-      toast.success('Tarefa removida localmente');
     }
+    const updated = tasks.filter(t => t.id !== taskId);
+    setTasks(updated);
+    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(updated));
+    toast.success('Tarefa removida');
   };
 
   const updateTask = async (taskId: string, updates: { taskName: string, company: string }) => {
-    // Atualizar estado local
-    const updatedTasks = tasks.map(t => 
-      t.id === taskId ? { ...t, ...updates } : t
-    );
-    setTasks(updatedTasks);
-    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(updatedTasks));
-
-    // Se logado, atualizar no Supabase
     if (user) {
       try {
         const { error } = await supabase
@@ -155,28 +143,18 @@ export function useTasks() {
           .eq('id', taskId);
         
         if (error) throw error;
-        toast.success('Tarefa atualizada');
       } catch (error) {
-        console.error('Erro ao atualizar no Supabase:', error);
+        console.error(error);
         toast.error('Erro ao atualizar na nuvem');
-      }
-    } else {
-      toast.success('Tarefa atualizada localmente');
-    }
-  };
-
-  const clearTasks = async () => {
-    if (user) {
-      const { error } = await supabase.from('tasks').delete().eq('user_id', user.id);
-      if (error) {
-        toast.error('Erro ao limpar tarefas na nuvem');
         return;
       }
     }
-    setTasks([]);
-    localStorage.removeItem(LOCAL_STORAGE_KEY);
-    toast.success('Histórico limpo com sucesso');
+    
+    const updated = tasks.map(t => t.id === taskId ? { ...t, ...updates } : t);
+    setTasks(updated);
+    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(updated));
+    toast.success('Tarefa atualizada');
   };
 
-  return { tasks, loading, addTask, deleteTask, updateTask, clearTasks, user };
+  return { tasks, loading, addTask, deleteTask, updateTask, user };
 }
