@@ -1,7 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
-import { Clock, TrendingUp, Users, Building2, Wifi, WifiOff } from 'lucide-react';
+import { Clock, TrendingUp, Users, Building2, Wifi, WifiOff, Calendar } from 'lucide-react';
+import { startOfDay, startOfWeek, startOfMonth, isAfter } from 'date-fns';
+
+type FilterType = 'day' | 'week' | 'month' | 'all';
 
 export default function TVDashboard() {
   const [data, setData] = useState<any[]>([]);
@@ -9,6 +12,7 @@ export default function TVDashboard() {
   const [loading, setLoading] = useState(true);
   const [currentTime, setCurrentTime] = useState(new Date());
   const [isConnected, setIsConnected] = useState(false);
+  const [filter, setFilter] = useState<FilterType>('all');
 
   useEffect(() => {
     const timer = setInterval(() => setCurrentTime(new Date()), 1000);
@@ -27,26 +31,45 @@ export default function TVDashboard() {
       clearInterval(polling);
       supabase.removeChannel(channel);
     };
-  }, []);
+  }, [filter]); // Recarrega quando o filtro muda
 
   const fetchGlobalData = async () => {
     try {
       const { data: tasks, error } = await supabase.from('tasks').select('*');
       if (error) throw error;
+      
       if (tasks) {
-        const companyMap = tasks.reduce((acc: any, task: any) => {
+        // Aplicar Filtro de Data
+        let filteredTasks = tasks;
+        const now = new Date();
+        
+        if (filter === 'day') {
+          const start = startOfDay(now);
+          filteredTasks = tasks.filter(t => isAfter(new Date(t.timestamp), start));
+        } else if (filter === 'week') {
+          const start = startOfWeek(now, { weekStartsOn: 1 });
+          filteredTasks = tasks.filter(t => isAfter(new Date(t.timestamp), start));
+        } else if (filter === 'month') {
+          const start = startOfMonth(now);
+          filteredTasks = tasks.filter(t => isAfter(new Date(t.timestamp), start));
+        }
+
+        const companyMap = filteredTasks.reduce((acc: any, task: any) => {
           acc[task.company] = (acc[task.company] || 0) + task.duration;
           return acc;
         }, {});
+
         const chartData = Object.keys(companyMap).map(name => ({
           name,
           value: Number((companyMap[name] / 3600).toFixed(1)),
           originalValue: companyMap[name]
         })).sort((a, b) => b.value - a.value).slice(0, 8);
+
         setData(chartData);
-        const totalTime = tasks.reduce((acc, t) => acc + t.duration, 0);
-        const uniqueUsers = new Set(tasks.map(t => t.user_id)).size;
-        setStats({ totalTime, totalTasks: tasks.length, activeUsers: uniqueUsers });
+
+        const totalTime = filteredTasks.reduce((acc, t) => acc + t.duration, 0);
+        const uniqueUsers = new Set(filteredTasks.map(t => t.user_id)).size;
+        setStats({ totalTime, totalTasks: filteredTasks.length, activeUsers: uniqueUsers });
       }
     } catch (err) { console.error(err); } finally { setLoading(false); }
   };
@@ -69,11 +92,36 @@ export default function TVDashboard() {
     <div className="h-screen w-screen bg-slate-950 text-slate-100 p-6 font-sans flex flex-col overflow-hidden">
       {/* Header */}
       <div className="flex justify-between items-center border-b border-slate-800 pb-4 mb-6">
-        <div className="flex items-center gap-4">
-          <div className="bg-red-600 text-white px-3 py-1 rounded text-xs font-black animate-pulse">LIVE</div>
-          <h1 className="text-3xl font-black tracking-tighter uppercase">
-            MERCAVEJO <span className="text-mercavejo-gold">PRODUCTIVITY</span>
-          </h1>
+        <div className="flex items-center gap-6">
+          <div className="flex items-center gap-4">
+            <div className="bg-red-600 text-white px-3 py-1 rounded text-xs font-black animate-pulse">LIVE</div>
+            <h1 className="text-3xl font-black tracking-tighter uppercase">
+              MERCAVEJO <span className="text-mercavejo-gold">PRODUCTIVITY</span>
+            </h1>
+          </div>
+          
+          {/* Filtros de Tempo */}
+          <div className="flex bg-slate-900 rounded-xl p-1 border border-slate-800">
+            {[
+              { id: 'day', label: 'Hoje' },
+              { id: 'week', label: 'Semana' },
+              { id: 'month', label: 'Mês' },
+              { id: 'all', label: 'Tudo' }
+            ].map((f) => (
+              <button
+                key={f.id}
+                onClick={() => setFilter(f.id as FilterType)}
+                className={`px-4 py-1.5 rounded-lg text-xs font-black uppercase tracking-widest transition-all ${
+                  filter === f.id 
+                    ? 'bg-mercavejo-gold text-slate-950 shadow-lg' 
+                    : 'text-slate-500 hover:text-slate-300'
+                }`}
+              >
+                {f.label}
+              </button>
+            ))}
+          </div>
+
           <div className={`flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold ${isConnected ? 'bg-emerald-500/10 text-emerald-500' : 'bg-red-500/10 text-red-500'}`}>
             {isConnected ? <Wifi className="w-3 h-3" /> : <WifiOff className="w-3 h-3" />}
             {isConnected ? 'REALTIME ACTIVE' : 'RECONNECTING...'}
@@ -90,7 +138,7 @@ export default function TVDashboard() {
       {/* Stats Grid */}
       <div className="grid grid-cols-4 gap-4 mb-6">
         {[
-          { label: 'Tempo Total', val: formatDuration(stats.totalTime), icon: Clock, color: 'text-mercavejo-gold' },
+          { label: `Tempo (${filter})`, val: formatDuration(stats.totalTime), icon: Clock, color: 'text-mercavejo-gold' },
           { label: 'Tarefas', val: stats.totalTasks, icon: TrendingUp, color: 'text-emerald-500' },
           { label: 'Usuários', val: stats.activeUsers, icon: Users, color: 'text-amber-500' },
           { label: 'Clientes', val: data.length, icon: Building2, color: 'text-purple-500' }
@@ -141,20 +189,27 @@ export default function TVDashboard() {
         <div className="bg-slate-900/80 border border-slate-700 p-8 rounded-3xl flex flex-col shadow-2xl">
           <h3 className="text-xl font-black mb-6 text-mercavejo-gold uppercase tracking-[0.2em]">Ranking</h3>
           <div className="flex-1 overflow-y-auto space-y-4 pr-2 custom-scrollbar">
-            {data.map((item, index) => (
-              <div key={item.name} className="flex items-center justify-between p-5 bg-slate-800/50 rounded-2xl border border-slate-600/50 hover:border-blue-500/50 transition-colors">
-                <div className="flex items-center gap-4">
-                  <span className="text-blue-500 font-black text-2xl italic">#{index + 1}</span>
-                  <span className="font-black text-xl text-white tracking-tight">{item.name}</span>
-                </div>
-                <div className="text-right">
-                  <div className="text-emerald-400 font-black text-2xl">{item.value}h</div>
-                  <div className="text-xs text-slate-500 font-bold uppercase">
-                    {stats.totalTime > 0 ? Math.round((item.originalValue / stats.totalTime) * 100) : 0}%
+            {data.length === 0 ? (
+              <div className="flex flex-col items-center justify-center h-full text-slate-600">
+                <Calendar className="w-12 h-12 mb-4 opacity-20" />
+                <p className="font-bold uppercase tracking-widest text-sm">Sem dados neste período</p>
+              </div>
+            ) : (
+              data.map((item, index) => (
+                <div key={item.name} className="flex items-center justify-between p-5 bg-slate-800/50 rounded-2xl border border-slate-600/50 hover:border-blue-500/50 transition-colors">
+                  <div className="flex items-center gap-4">
+                    <span className="text-blue-500 font-black text-2xl italic">#{index + 1}</span>
+                    <span className="font-black text-xl text-white tracking-tight">{item.name}</span>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-emerald-400 font-black text-2xl">{item.value}h</div>
+                    <div className="text-xs text-slate-500 font-bold uppercase">
+                      {stats.totalTime > 0 ? Math.round((item.originalValue / stats.totalTime) * 100) : 0}%
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              ))
+            )}
           </div>
         </div>
       </div>
@@ -162,7 +217,7 @@ export default function TVDashboard() {
       {/* Footer Ticker */}
       <div className="fixed bottom-0 left-0 right-0 bg-mercavejo-blue h-12 flex items-center overflow-hidden border-t-2 border-mercavejo-gold shadow-[0_-10px_50px_rgba(0,43,69,0.4)]">
         <div className="whitespace-nowrap animate-marquee flex items-center gap-20 text-white font-black text-sm uppercase tracking-[0.1em]">
-          {data.concat(data).map((item, i) => (
+          {data.length > 0 ? data.concat(data).map((item, i) => (
             <span key={i} className="flex items-center gap-4">
               <span className="text-mercavejo-gold text-xl">★</span> 
               <span className="text-white">{item.name}</span> 
@@ -170,7 +225,9 @@ export default function TVDashboard() {
                 {formatDuration(item.originalValue)}
               </span>
             </span>
-          ))}
+          )) : (
+            <span className="text-blue-200">Aguardando novos registros para o período selecionado...</span>
+          )}
         </div>
       </div>
 
