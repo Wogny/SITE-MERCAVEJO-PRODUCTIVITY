@@ -1,13 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
-import { Clock, TrendingUp, Users, Building2, Wifi, WifiOff, Calendar } from 'lucide-react';
-import { startOfDay, startOfWeek, startOfMonth, isAfter } from 'date-fns';
+import { Clock, TrendingUp, Users, Building2, Wifi, WifiOff, Calendar, ListTodo } from 'lucide-react';
+import { startOfDay, startOfWeek, startOfMonth, isAfter, format } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
 
 type FilterType = 'day' | 'week' | 'month' | 'all';
 
 export default function TVDashboard() {
   const [data, setData] = useState<any[]>([]);
+  const [rawTasks, setRawTasks] = useState<any[]>([]);
   const [stats, setStats] = useState({ totalTime: 0, totalTasks: 0, activeUsers: 0 });
   const [loading, setLoading] = useState(true);
   const [currentTime, setCurrentTime] = useState(new Date());
@@ -35,7 +37,7 @@ export default function TVDashboard() {
 
   const fetchGlobalData = async () => {
     try {
-      const { data: tasks, error } = await supabase.from('tasks').select('*');
+      const { data: tasks, error } = await supabase.from('tasks').select('*').order('timestamp', { ascending: false });
       if (error) throw error;
       
       if (tasks) {
@@ -53,6 +55,8 @@ export default function TVDashboard() {
           const start = startOfMonth(now);
           filteredTasks = tasks.filter(t => isAfter(new Date(t.timestamp), start));
         }
+
+        setRawTasks(filteredTasks);
 
         const companyMap = filteredTasks.reduce((acc: any, task: any) => {
           acc[task.company] = (acc[task.company] || 0) + task.duration;
@@ -78,6 +82,13 @@ export default function TVDashboard() {
     const hours = Math.floor(seconds / 3600);
     const minutes = Math.floor((seconds % 3600) / 60);
     return `${hours}h ${minutes}m`;
+  };
+
+  const formatFullDuration = (seconds: number) => {
+    const hours = Math.floor(seconds / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+    const secs = seconds % 60;
+    return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
   const COLORS = ['#C5A267', '#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#06b6d4'];
@@ -185,31 +196,64 @@ export default function TVDashboard() {
           </div>
         </div>
 
-        {/* Ranking Container */}
-        <div className="bg-slate-900/80 border border-slate-700 p-8 rounded-3xl flex flex-col shadow-2xl">
-          <h3 className="text-xl font-black mb-6 text-mercavejo-gold uppercase tracking-[0.2em]">Ranking</h3>
-          <div className="flex-1 overflow-y-auto space-y-4 pr-2 custom-scrollbar">
-            {data.length === 0 ? (
-              <div className="flex flex-col items-center justify-center h-full text-slate-600">
-                <Calendar className="w-12 h-12 mb-4 opacity-20" />
-                <p className="font-bold uppercase tracking-widest text-sm">Sem dados neste período</p>
-              </div>
-            ) : (
-              data.map((item, index) => (
-                <div key={item.name} className="flex items-center justify-between p-5 bg-slate-800/50 rounded-2xl border border-slate-600/50 hover:border-blue-500/50 transition-colors">
-                  <div className="flex items-center gap-4">
-                    <span className="text-blue-500 font-black text-2xl italic">#{index + 1}</span>
-                    <span className="font-black text-xl text-white tracking-tight">{item.name}</span>
-                  </div>
-                  <div className="text-right">
-                    <div className="text-emerald-400 font-black text-2xl">{item.value}h</div>
-                    <div className="text-xs text-slate-500 font-bold uppercase">
-                      {stats.totalTime > 0 ? Math.round((item.originalValue / stats.totalTime) * 100) : 0}%
+        {/* Ranking & History Container */}
+        <div className="flex flex-col gap-6 overflow-hidden">
+          {/* Ranking */}
+          <div className="flex-1 bg-slate-900/80 border border-slate-700 p-6 rounded-3xl flex flex-col shadow-2xl overflow-hidden">
+            <h3 className="text-lg font-black mb-4 text-mercavejo-gold uppercase tracking-[0.2em] flex items-center gap-2">
+              <TrendingUp className="w-5 h-5" /> Ranking
+            </h3>
+            <div className="flex-1 overflow-y-auto space-y-3 pr-2 custom-scrollbar">
+              {data.length === 0 ? (
+                <div className="flex flex-col items-center justify-center h-full text-slate-600">
+                  <Calendar className="w-10 h-10 mb-2 opacity-20" />
+                  <p className="font-bold uppercase tracking-widest text-xs">Sem dados</p>
+                </div>
+              ) : (
+                data.map((item, index) => (
+                  <div key={item.name} className="flex items-center justify-between p-3 bg-slate-800/50 rounded-xl border border-slate-600/50">
+                    <div className="flex items-center gap-3">
+                      <span className="text-blue-500 font-black text-lg italic">#{index + 1}</span>
+                      <span className="font-black text-sm text-white tracking-tight truncate max-w-[120px]">{item.name}</span>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-emerald-400 font-black text-lg">{item.value}h</div>
                     </div>
                   </div>
+                ))
+              )}
+            </div>
+          </div>
+
+          {/* Task History */}
+          <div className="flex-1 bg-slate-900/80 border border-slate-700 p-6 rounded-3xl flex flex-col shadow-2xl overflow-hidden">
+            <h3 className="text-lg font-black mb-4 text-mercavejo-gold uppercase tracking-[0.2em] flex items-center gap-2">
+              <ListTodo className="w-5 h-5" /> Histórico
+            </h3>
+            <div className="flex-1 overflow-y-auto space-y-3 pr-2 custom-scrollbar">
+              {rawTasks.length === 0 ? (
+                <div className="flex flex-col items-center justify-center h-full text-slate-600">
+                  <ListTodo className="w-10 h-10 mb-2 opacity-20" />
+                  <p className="font-bold uppercase tracking-widest text-xs text-center">Nenhuma tarefa recente</p>
                 </div>
-              ))
-            )}
+              ) : (
+                rawTasks.slice(0, 20).map((task, index) => (
+                  <div key={task.id || index} className="p-3 bg-slate-800/30 rounded-xl border border-slate-700/50 hover:border-mercavejo-gold/30 transition-colors">
+                    <div className="flex justify-between items-start mb-1">
+                      <span className="font-black text-xs text-mercavejo-gold uppercase truncate max-w-[150px]">{task.company}</span>
+                      <span className="text-[10px] font-mono text-slate-500">{format(new Date(task.timestamp), 'HH:mm', { locale: ptBR })}</span>
+                    </div>
+                    <p className="text-sm font-bold text-white line-clamp-1 mb-1">{task.taskName}</p>
+                    <div className="flex justify-between items-center">
+                      <span className="text-[10px] text-slate-400 font-bold uppercase tracking-tighter">
+                        {format(new Date(task.timestamp), 'dd MMM', { locale: ptBR })}
+                      </span>
+                      <span className="text-xs font-black text-emerald-400 font-mono">{formatFullDuration(task.duration)}</span>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
           </div>
         </div>
       </div>
