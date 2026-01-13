@@ -262,17 +262,19 @@ export default function TVDashboard() {
                       </span>
                     </div>
                     
-                    {/* Conteúdo da Tarefa: Nome da Tarefa em Destaque */}
+                    {/* Conteúdo da Tarefa: EMPRESA - TAREFA */}
                     <div className="space-y-1 mb-3">
-                      <div className="flex items-center gap-1.5">
-                        <Building2 className="w-3 h-3 text-mercavejo-gold opacity-70" />
-                        <span className="font-black text-[10px] text-mercavejo-gold uppercase tracking-widest truncate">
-                          {task.company}
-                        </span>
+                      <div className="flex items-start gap-1.5">
+                        <Building2 className="w-3.5 h-3.5 text-mercavejo-gold mt-0.5 flex-shrink-0" />
+                        <div className="flex flex-col">
+                          <span className="font-black text-[10px] text-mercavejo-gold uppercase tracking-widest">
+                            {task.company}
+                          </span>
+                          <p className="text-base font-black text-white leading-tight line-clamp-2 uppercase">
+                            {task.task_name || task.taskName || 'Sem descrição'}
+                          </p>
+                        </div>
                       </div>
-                      <p className="text-base font-black text-white leading-tight line-clamp-2">
-                        {task.taskName}
-                      </p>
                     </div>
 
                     {/* Rodapé do Card: Data e Duração */}
