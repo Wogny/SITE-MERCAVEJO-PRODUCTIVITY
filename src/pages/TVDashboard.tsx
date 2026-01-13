@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
-import { Clock, TrendingUp, Users, Building2, Wifi, WifiOff, Calendar, ListTodo } from 'lucide-react';
+import { Clock, TrendingUp, Users, Building2, Wifi, WifiOff, Calendar, ListTodo, User } from 'lucide-react';
 import { startOfDay, startOfWeek, startOfMonth, isAfter, format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
@@ -37,7 +37,14 @@ export default function TVDashboard() {
 
   const fetchGlobalData = async () => {
     try {
-      const { data: tasks, error } = await supabase.from('tasks').select('*').order('timestamp', { ascending: false });
+      // Buscamos as tarefas. Como não há uma tabela de perfis explícita, 
+      // o user_id é o que temos disponível. Em um cenário real com tabela de perfis,
+      // faríamos um join aqui.
+      const { data: tasks, error } = await supabase
+        .from('tasks')
+        .select('*')
+        .order('timestamp', { ascending: false });
+        
       if (error) throw error;
       
       if (tasks) {
@@ -240,13 +247,18 @@ export default function TVDashboard() {
                 rawTasks.slice(0, 20).map((task, index) => (
                   <div key={task.id || index} className="p-3 bg-slate-800/30 rounded-xl border border-slate-700/50 hover:border-mercavejo-gold/30 transition-colors">
                     <div className="flex justify-between items-start mb-1">
-                      <span className="font-black text-xs text-mercavejo-gold uppercase truncate max-w-[150px]">{task.company}</span>
-                      <span className="text-[10px] font-mono text-slate-500">{format(new Date(task.timestamp), 'HH:mm', { locale: ptBR })}</span>
+                      <span className="font-black text-[10px] text-mercavejo-gold uppercase truncate max-w-[120px]">{task.company}</span>
+                      <div className="flex items-center gap-1 text-slate-400">
+                        <User className="w-2.5 h-2.5" />
+                        <span className="text-[9px] font-bold uppercase truncate max-w-[80px]">
+                          {task.user_id ? `User ${task.user_id.substring(0, 4)}` : 'Sistema'}
+                        </span>
+                      </div>
                     </div>
                     <p className="text-sm font-bold text-white line-clamp-1 mb-1">{task.taskName}</p>
                     <div className="flex justify-between items-center">
-                      <span className="text-[10px] text-slate-400 font-bold uppercase tracking-tighter">
-                        {format(new Date(task.timestamp), 'dd MMM', { locale: ptBR })}
+                      <span className="text-[10px] text-slate-500 font-bold uppercase tracking-tighter">
+                        {format(new Date(task.timestamp), 'HH:mm - dd MMM', { locale: ptBR })}
                       </span>
                       <span className="text-xs font-black text-emerald-400 font-mono">{formatFullDuration(task.duration)}</span>
                     </div>
