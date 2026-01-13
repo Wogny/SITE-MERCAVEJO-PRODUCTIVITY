@@ -15,7 +15,6 @@ export default function TVDashboard() {
   const [currentTime, setCurrentTime] = useState(new Date());
   const [isConnected, setIsConnected] = useState(false);
   const [filter, setFilter] = useState<FilterType>('all');
-  const [userProfiles, setUserProfiles] = useState<Record<string, any>>({});
 
   useEffect(() => {
     const timer = setInterval(() => setCurrentTime(new Date()), 1000);
@@ -38,7 +37,6 @@ export default function TVDashboard() {
 
   const fetchGlobalData = async () => {
     try {
-      // Buscamos as tarefas
       const { data: tasks, error } = await supabase
         .from('tasks')
         .select('*')
@@ -63,11 +61,6 @@ export default function TVDashboard() {
         }
 
         setRawTasks(filteredTasks);
-
-        // Tentar buscar informações dos usuários via RPC ou metadados se disponível
-        // Como o Supabase não permite listar auth.users diretamente do cliente por segurança,
-        // em um ambiente real usaríamos uma tabela 'profiles' que sincroniza com auth.users.
-        // Para esta implementação, vamos extrair o que for possível.
 
         const companyMap = filteredTasks.reduce((acc: any, task: any) => {
           acc[task.company] = (acc[task.company] || 0) + task.duration;
@@ -249,33 +242,53 @@ export default function TVDashboard() {
                 </div>
               ) : (
                 rawTasks.slice(0, 20).map((task, index) => (
-                  <div key={task.id || index} className="p-3 bg-slate-800/30 rounded-xl border border-slate-700/50 hover:border-mercavejo-gold/30 transition-colors">
-                    <div className="flex justify-between items-center mb-2">
+                  <div key={task.id || index} className="p-4 bg-slate-800/40 rounded-2xl border border-slate-700/50 hover:border-mercavejo-gold/50 transition-all">
+                    {/* Linha Superior: Usuário e Hora */}
+                    <div className="flex justify-between items-center mb-3">
                       <div className="flex items-center gap-2">
-                        <div className="w-6 h-6 rounded-full bg-slate-700 overflow-hidden border border-mercavejo-gold/30 flex items-center justify-center">
+                        <div className="w-8 h-8 rounded-full bg-slate-700 overflow-hidden border-2 border-mercavejo-gold/40 flex items-center justify-center shadow-lg">
                           {task.user_avatar ? (
                             <img src={task.user_avatar} alt="User" className="w-full h-full object-cover" />
                           ) : (
-                            <UserIcon className="w-3 h-3 text-mercavejo-gold" />
+                            <UserIcon className="w-4 h-4 text-mercavejo-gold" />
                           )}
                         </div>
-                        <span className="text-[10px] font-black text-white uppercase truncate max-w-[100px]">
+                        <span className="text-xs font-black text-white uppercase tracking-tight truncate max-w-[120px]">
                           {task.user_name || 'Usuário'}
                         </span>
                       </div>
-                      <span className="text-[9px] font-mono text-slate-500">{format(new Date(task.timestamp), 'HH:mm', { locale: ptBR })}</span>
+                      <span className="text-[10px] font-mono font-bold text-slate-500 bg-slate-900/50 px-2 py-1 rounded-md">
+                        {format(new Date(task.timestamp), 'HH:mm', { locale: ptBR })}
+                      </span>
                     </div>
                     
-                    <div className="mb-1">
-                      <span className="font-black text-[10px] text-mercavejo-gold uppercase tracking-wider">{task.company}</span>
-                      <p className="text-sm font-bold text-white line-clamp-1">{task.taskName}</p>
+                    {/* Conteúdo da Tarefa: Nome da Tarefa em Destaque */}
+                    <div className="space-y-1 mb-3">
+                      <div className="flex items-center gap-1.5">
+                        <Building2 className="w-3 h-3 text-mercavejo-gold opacity-70" />
+                        <span className="font-black text-[10px] text-mercavejo-gold uppercase tracking-widest truncate">
+                          {task.company}
+                        </span>
+                      </div>
+                      <p className="text-base font-black text-white leading-tight line-clamp-2">
+                        {task.taskName}
+                      </p>
                     </div>
 
-                    <div className="flex justify-between items-center mt-1 pt-1 border-t border-slate-700/30">
-                      <span className="text-[9px] text-slate-500 font-bold uppercase tracking-tighter">
-                        {format(new Date(task.timestamp), 'dd MMM', { locale: ptBR })}
-                      </span>
-                      <span className="text-xs font-black text-emerald-400 font-mono">{formatFullDuration(task.duration)}</span>
+                    {/* Rodapé do Card: Data e Duração */}
+                    <div className="flex justify-between items-center pt-2 border-t border-slate-700/50">
+                      <div className="flex items-center gap-1 text-slate-500">
+                        <Calendar className="w-3 h-3" />
+                        <span className="text-[10px] font-bold uppercase tracking-tighter">
+                          {format(new Date(task.timestamp), 'dd MMM', { locale: ptBR })}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-1.5 bg-emerald-500/10 px-2 py-1 rounded-lg border border-emerald-500/20">
+                        <Clock className="w-3 h-3 text-emerald-400" />
+                        <span className="text-sm font-black text-emerald-400 font-mono">
+                          {formatFullDuration(task.duration)}
+                        </span>
+                      </div>
                     </div>
                   </div>
                 ))
