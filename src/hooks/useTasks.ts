@@ -9,6 +9,8 @@ export interface Task {
   duration: number;
   timestamp: Date;
   user_id?: string;
+  user_name?: string;
+  user_avatar?: string;
 }
 
 const LOCAL_STORAGE_KEY = 'mercavejo-tasks';
@@ -64,7 +66,9 @@ export function useTasks() {
             company: t.company,
             duration: t.duration,
             timestamp: new Date(t.timestamp),
-            user_id: t.user_id
+            user_id: t.user_id,
+            user_name: t.user_name,
+            user_avatar: t.user_avatar
           }));
           setTasks(remoteTasks);
           localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(remoteTasks));
@@ -87,7 +91,9 @@ export function useTasks() {
           company: taskData.company,
           duration: taskData.duration,
           timestamp: taskData.timestamp.toISOString(),
-          user_id: user.id
+          user_id: user.id,
+          user_name: user.user_metadata?.full_name || user.email?.split('@')[0],
+          user_avatar: user.user_metadata?.avatar_url
         }]).select();
 
         if (error) throw error;
@@ -96,7 +102,9 @@ export function useTasks() {
           const newTask = {
             id: data[0].id,
             ...taskData,
-            user_id: user.id
+            user_id: user.id,
+            user_name: user.user_metadata?.full_name || user.email?.split('@')[0],
+            user_avatar: user.user_metadata?.avatar_url
           };
           const updated = [newTask, ...tasks];
           setTasks(updated);

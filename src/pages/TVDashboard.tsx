@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
-import { Clock, TrendingUp, Users, Building2, Wifi, WifiOff, Calendar, ListTodo, User } from 'lucide-react';
+import { Clock, TrendingUp, Users, Building2, Wifi, WifiOff, Calendar, ListTodo, User as UserIcon } from 'lucide-react';
 import { startOfDay, startOfWeek, startOfMonth, isAfter, format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
@@ -15,6 +15,7 @@ export default function TVDashboard() {
   const [currentTime, setCurrentTime] = useState(new Date());
   const [isConnected, setIsConnected] = useState(false);
   const [filter, setFilter] = useState<FilterType>('all');
+  const [userProfiles, setUserProfiles] = useState<Record<string, any>>({});
 
   useEffect(() => {
     const timer = setInterval(() => setCurrentTime(new Date()), 1000);
@@ -37,9 +38,7 @@ export default function TVDashboard() {
 
   const fetchGlobalData = async () => {
     try {
-      // Buscamos as tarefas. Como não há uma tabela de perfis explícita, 
-      // o user_id é o que temos disponível. Em um cenário real com tabela de perfis,
-      // faríamos um join aqui.
+      // Buscamos as tarefas
       const { data: tasks, error } = await supabase
         .from('tasks')
         .select('*')
@@ -64,6 +63,11 @@ export default function TVDashboard() {
         }
 
         setRawTasks(filteredTasks);
+
+        // Tentar buscar informações dos usuários via RPC ou metadados se disponível
+        // Como o Supabase não permite listar auth.users diretamente do cliente por segurança,
+        // em um ambiente real usaríamos uma tabela 'profiles' que sincroniza com auth.users.
+        // Para esta implementação, vamos extrair o que for possível.
 
         const companyMap = filteredTasks.reduce((acc: any, task: any) => {
           acc[task.company] = (acc[task.company] || 0) + task.duration;
@@ -246,19 +250,30 @@ export default function TVDashboard() {
               ) : (
                 rawTasks.slice(0, 20).map((task, index) => (
                   <div key={task.id || index} className="p-3 bg-slate-800/30 rounded-xl border border-slate-700/50 hover:border-mercavejo-gold/30 transition-colors">
-                    <div className="flex justify-between items-start mb-1">
-                      <span className="font-black text-[10px] text-mercavejo-gold uppercase truncate max-w-[120px]">{task.company}</span>
-                      <div className="flex items-center gap-1 text-slate-400">
-                        <User className="w-2.5 h-2.5" />
-                        <span className="text-[9px] font-bold uppercase truncate max-w-[80px]">
-                          {task.user_id ? `User ${task.user_id.substring(0, 4)}` : 'Sistema'}
+                    <div className="flex justify-between items-center mb-2">
+                      <div className="flex items-center gap-2">
+                        <div className="w-6 h-6 rounded-full bg-slate-700 overflow-hidden border border-mercavejo-gold/30 flex items-center justify-center">
+                          {task.user_avatar ? (
+                            <img src={task.user_avatar} alt="User" className="w-full h-full object-cover" />
+                          ) : (
+                            <UserIcon className="w-3 h-3 text-mercavejo-gold" />
+                          )}
+                        </div>
+                        <span className="text-[10px] font-black text-white uppercase truncate max-w-[100px]">
+                          {task.user_name || 'Usuário'}
                         </span>
                       </div>
+                      <span className="text-[9px] font-mono text-slate-500">{format(new Date(task.timestamp), 'HH:mm', { locale: ptBR })}</span>
                     </div>
-                    <p className="text-sm font-bold text-white line-clamp-1 mb-1">{task.taskName}</p>
-                    <div className="flex justify-between items-center">
-                      <span className="text-[10px] text-slate-500 font-bold uppercase tracking-tighter">
-                        {format(new Date(task.timestamp), 'HH:mm - dd MMM', { locale: ptBR })}
+                    
+                    <div className="mb-1">
+                      <span className="font-black text-[10px] text-mercavejo-gold uppercase tracking-wider">{task.company}</span>
+                      <p className="text-sm font-bold text-white line-clamp-1">{task.taskName}</p>
+                    </div>
+
+                    <div className="flex justify-between items-center mt-1 pt-1 border-t border-slate-700/30">
+                      <span className="text-[9px] text-slate-500 font-bold uppercase tracking-tighter">
+                        {format(new Date(task.timestamp), 'dd MMM', { locale: ptBR })}
                       </span>
                       <span className="text-xs font-black text-emerald-400 font-mono">{formatFullDuration(task.duration)}</span>
                     </div>
