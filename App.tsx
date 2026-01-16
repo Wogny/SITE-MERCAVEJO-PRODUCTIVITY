@@ -10,6 +10,7 @@ import Dashboard from './src/pages/Dashboard';
 import Historico from './src/pages/Historico';
 import Configuracoes from './src/pages/Configuracoes';
 import TVDashboard from './src/pages/TVDashboard';
+import Agendas from './src/pages/Agendas';
 import NotFound from './src/pages/NotFound';
 
 const App: React.FC = () => {
@@ -23,6 +24,7 @@ const App: React.FC = () => {
             <Route path="/historico" element={<Historico />} />
             <Route path="/configuracoes" element={<Configuracoes />} />
             <Route path="/tv" element={<TVDashboard />} />
+            <Route path="/agendas" element={<Agendas />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
           <ToastContainer
