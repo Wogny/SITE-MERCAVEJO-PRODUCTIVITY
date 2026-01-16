@@ -8,6 +8,7 @@ interface ImportMetaEnv {
   readonly VITE_TRELLO_BOARD_ID?: string
   readonly VITE_TRELLO_STUDIO_LIST_ID?: string
   readonly VITE_TRELLO_COMPLETED_LIST_ID?: string
+  readonly VITE_TRELLO_HORARIOS_LIST_ID?: string
 }
 
 interface ImportMeta {

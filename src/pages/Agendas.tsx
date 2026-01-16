@@ -12,7 +12,8 @@ import {
   User as UserIcon,
   Loader2,
   Trello,
-  AlertCircle
+  AlertCircle,
+  Users
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -23,15 +24,18 @@ const TRELLO_TOKEN = import.meta.env.VITE_TRELLO_TOKEN || '';
 const TRELLO_BOARD_ID = import.meta.env.VITE_TRELLO_BOARD_ID || '';
 const TRELLO_STUDIO_LIST_ID = import.meta.env.VITE_TRELLO_STUDIO_LIST_ID || '';
 const TRELLO_COMPLETED_LIST_ID = import.meta.env.VITE_TRELLO_COMPLETED_LIST_ID || '';
+const TRELLO_HORARIOS_LIST_ID = import.meta.env.VITE_TRELLO_HORARIOS_LIST_ID || '';
 
 export default function Agendas() {
   const [loadingFluxo, setLoadingFluxo] = useState(true);
   const [loadingEstudio, setLoadingEstudio] = useState(true);
   const [loadingEntregas, setLoadingEntregas] = useState(true);
+  const [loadingHorarios, setLoadingHorarios] = useState(true);
   
   const [tasks, setTasks] = useState<any[]>([]);
   const [studioCards, setStudioCards] = useState<any[]>([]);
   const [completedCards, setCompletedCards] = useState<any[]>([]);
+  const [horariosCards, setHorariosCards] = useState<any[]>([]);
   const [studioStatus, setStudioStatus] = useState({ isUsed: false, isRecording: false });
 
   useEffect(() => {
@@ -44,6 +48,7 @@ export default function Agendas() {
     fetchFluxoData();
     fetchEstudioData();
     fetchEntregasData();
+    fetchHorariosData();
   };
 
   const fetchFluxoData = async () => {
@@ -103,6 +108,32 @@ export default function Agendas() {
       console.error('Erro ao buscar entregas do Trello:', err);
     } finally {
       setLoadingEntregas(false);
+    }
+  };
+
+  const fetchHorariosData = async () => {
+    setLoadingHorarios(true);
+    try {
+      if (TRELLO_API_KEY && TRELLO_TOKEN && TRELLO_BOARD_ID && TRELLO_HORARIOS_LIST_ID) {
+        const response = await fetch(
+          `https://api.trello.com/1/lists/${TRELLO_HORARIOS_LIST_ID}/cards?key=${TRELLO_API_KEY}&token=${TRELLO_TOKEN}&fields=name,idList,labels,members,due&member_fields=fullName`
+        );
+        if (response.ok) {
+          const cards = await response.json();
+          // Ordenar por data/hora se disponível
+          const sortedCards = cards.sort((a: any, b: any) => {
+            if (a.due && b.due) {
+              return new Date(a.due).getTime() - new Date(b.due).getTime();
+            }
+            return 0;
+          });
+          setHorariosCards(sortedCards);
+        }
+      }
+    } catch (err) {
+      console.error('Erro ao buscar horários do Trello:', err);
+    } finally {
+      setLoadingHorarios(false);
     }
   };
 
@@ -254,6 +285,56 @@ export default function Agendas() {
     </div>
   );
 
+  const renderHorarios = () => (
+    <div className="h-full flex flex-col bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+      <div className="p-4 border-b border-gray-100 bg-gray-50/50 flex items-center justify-between">
+        <h3 className="font-black uppercase tracking-widest text-gray-700 flex items-center gap-2">
+          <Clock className="w-5 h-5 text-purple-600" /> Horários
+        </h3>
+      </div>
+      
+      <div className="flex-1 p-4 overflow-y-auto space-y-3">
+        {loadingHorarios ? (
+          <div className="flex justify-center py-8">
+            <Loader2 className="w-8 h-8 text-mercavejo-gold animate-spin" />
+          </div>
+        ) : horariosCards.length === 0 ? (
+          <div className="text-center py-8 text-gray-400">
+            <Clock className="w-8 h-8 mx-auto mb-2 opacity-50" />
+            <p className="text-xs font-bold">Nenhum horário agendado</p>
+          </div>
+        ) : (
+          horariosCards.map((card) => (
+            <div key={card.id} className="p-3 bg-gradient-to-r from-purple-50 to-transparent rounded-lg border border-purple-200 hover:border-purple-300 transition-colors">
+              <div className="flex items-start justify-between gap-2">
+                <div className="flex-1 min-w-0">
+                  <h4 className="text-sm font-black text-gray-900 uppercase leading-tight line-clamp-2">{card.name}</h4>
+                  <div className="flex items-center gap-2 mt-2">
+                    {card.due && (
+                      <div className="flex items-center gap-1 text-purple-600">
+                        <Clock className="w-3.5 h-3.5" />
+                        <span className="text-xs font-bold">{format(new Date(card.due), 'HH:mm')}</span>
+                      </div>
+                    )}
+                    {card.members && card.members.length > 0 && (
+                      <div className="flex items-center gap-1 text-gray-600">
+                        <Users className="w-3.5 h-3.5" />
+                        <span className="text-xs font-bold truncate">{card.members[0].fullName}</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+                <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center text-purple-600 flex-shrink-0">
+                  <Clock className="w-5 h-5" />
+                </div>
+              </div>
+            </div>
+          ))
+        )}
+      </div>
+    </div>
+  );
+
   return (
     <div className="min-h-screen bg-gray-50">
       <Header />
@@ -265,11 +346,12 @@ export default function Agendas() {
           <p className="text-gray-500 font-bold uppercase text-xs tracking-widest mt-1">Monitoramento em tempo real</p>
         </div>
 
-        {/* Grid de 3 colunas */}
-        <div className="grid grid-cols-3 gap-6 h-[calc(100%-80px)]">
+        {/* Grid de 4 colunas */}
+        <div className="grid grid-cols-4 gap-6 h-[calc(100%-80px)]">
           {renderEstudio()}
           {renderFluxo()}
           {renderEntregas()}
+          {renderHorarios()}
         </div>
       </main>
     </div>
