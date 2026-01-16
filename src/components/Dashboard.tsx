@@ -76,7 +76,7 @@ const Dashboard: React.FC<DashboardProps> = ({ tasks }) => {
     hours: Math.round(duration / 3600 * 10) / 10
   }));
 
-  const taskFrequency = tasks.reduce((acc, task) => {
+  const taskFrequency = filteredTasks.reduce((acc, task) => {
     acc[task.taskName] = (acc[task.taskName] || 0) + 1;
     return acc;
   }, {} as Record<string, number>);
@@ -90,6 +90,7 @@ const Dashboard: React.FC<DashboardProps> = ({ tasks }) => {
 
   const totalTodayTime = todayTasks.reduce((sum, task) => sum + task.duration, 0);
   const totalWeekTime = weekTasks.reduce((sum, task) => sum + task.duration, 0);
+  const totalFilteredTime = filteredTasks.reduce((sum, task) => sum + task.duration, 0);
 
   const clearFilter = () => {
     setStartDate('');
@@ -167,9 +168,9 @@ const Dashboard: React.FC<DashboardProps> = ({ tasks }) => {
               <TrendingUp className="w-6 h-6 text-green-600" />
             </div>
             <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">Esta Semana</p>
+              <p className="text-sm font-medium text-gray-600">{(startDate || endDate) ? 'Total Período' : 'Esta Semana'}</p>
               <p className="text-2xl font-semibold text-gray-900">
-                {formatDuration(totalWeekTime)}
+                {formatDuration((startDate || endDate) ? totalFilteredTime : totalWeekTime)}
               </p>
             </div>
           </div>
@@ -197,7 +198,7 @@ const Dashboard: React.FC<DashboardProps> = ({ tasks }) => {
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-600">Tarefas</p>
               <p className="text-2xl font-semibold text-gray-900">
-                {tasks.length}
+                {filteredTasks.length}
               </p>
             </div>
           </div>
