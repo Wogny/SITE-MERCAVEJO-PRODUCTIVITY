@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Header from '../components/Header';
 import { supabase } from '../lib/supabase';
 import { 
@@ -111,7 +111,7 @@ export default function Agendas() {
           console.error('Erro ao buscar cards do Trello:', response.status);
         }
       } else {
-        console.warn('Variáveis de configuração do Trello não definidas');
+        console.warn('Variáveis de configuração do Trello não definidas para estúdio');
       }
     } catch (err) {
       console.error('Erro ao buscar agendamentos do Trello:', err);
@@ -146,32 +146,115 @@ export default function Agendas() {
   const fetchHorariosData = async () => {
     setLoadingHorarios(true);
     try {
-      if (TRELLO_API_KEY && TRELLO_TOKEN && TRELLO_HORARIOS_LIST_ID) {
-        const response = await fetch(
-          `https://api.trello.com/1/lists/${TRELLO_HORARIOS_LIST_ID}/cards?key=${TRELLO_API_KEY}&token=${TRELLO_TOKEN}&fields=name,idList,labels,members,due&member_fields=fullName`
-        );
-        if (response.ok) {
-          const cards = await response.json();
-          // Ordenar por data/hora se disponível
-          const sortedCards = cards.sort((a: any, b: any) => {
-            if (a.due && b.due) {
-              return new Date(a.due).getTime() - new Date(b.due).getTime();
-            }
-            return 0;
-          });
-          setHorariosCards(sortedCards);
-          console.log('Horários carregados:', sortedCards);
-        } else {
-          console.error('Erro ao buscar cards de horários:', response.status);
-        }
-      } else {
-        console.warn('Variáveis de configuração do Trello não definidas para horários');
+      if (!TRELLO_API_KEY || !TRELLO_TOKEN || !TRELLO_HORARIOS_LIST_ID) {
+        console.warn('Variáveis de configuração do Trello não definidas para horários:', {
+          hasKey: !!TRELLO_API_KEY,
+          hasToken: !!TRELLO_TOKEN,
+          hasListId: !!TRELLO_HORARIOS_LIST_ID
+        });
+        setLoadingHorarios(false);
+        return;
       }
+
+      const url = `https://api.trello.com/1/lists/${TRELLO_HORARIOS_LIST_ID}/cards?key=${TRELLO_API_KEY}&token=${TRELLO_TOKEN}&fields=name,idList,labels,members,due&member_fields=fullName`;
+      console.log('Buscando horários de:', url);
+
+      const response = await fetch(url);
+      
+      if (!response.ok) {
+        console.error('Erro ao buscar cards de horários. Status:', response.status, response.statusText);
+        const errorText = await response.text();
+        console.error('Resposta de erro:', errorText);
+        setLoadingHorarios(false);
+        return;
+      }
+
+      const cards = await response.json();
+      console.log('Horários carregados com sucesso:', cards);
+      
+      // Ordenar por data/hora se disponível
+      const sortedCards = cards.sort((a: any, b: any) => {
+        if (a.due && b.due) {
+          return new Date(a.due).getTime() - new Date(b.due).getTime();
+        }
+        return 0;
+      });
+      
+      setHorariosCards(sortedCards);
     } catch (err) {
       console.error('Erro ao buscar horários do Trello:', err);
     } finally {
       setLoadingHorarios(false);
     }
+  };
+
+  const toggleManualStudio = () => {
+    setManualStudioMode(!manualStudioMode);
+    if (!manualStudioMode) {
+      // Ao ativar modo manual, inverte o status de "Em Uso"
+      setStudioStatus(prev => ({
+        ...prev,
+        isUsed: !prev.isUsed
+      }));
+    }
+  };
+
+  const ScrollableList = ({ items, renderItem, emptyMessage, emptyIcon: EmptyIcon }: any) => {
+    const containerRef = useRef<HTMLDivElement>(null);
+
+    if (items.length === 0) {
+      return (
+        <div className="text-center py-8 text-gray-400">
+          <EmptyIcon className="w-8 h-8 mx-auto mb-2 opacity-50" />
+          <p className="text-xs font-bold">{emptyMessage}</p>
+        </div>
+      );
+    }
+
+    return (
+      <div 
+        ref={containerRef}
+        className="h-full overflow-hidden relative"
+        style={{
+          perspective: '1000px'
+        }}
+      >
+        <style>{`
+          @keyframes smoothScroll {
+            0% {
+              transform: translateY(0);
+            }
+            100% {
+              transform: translateY(calc(-100% / 2));
+            }
+          }
+          
+          .scroll-list {
+            animation: smoothScroll ${Math.max(items.length * 3, 12)}s linear infinite;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+          }
+          
+          .scroll-list:hover {
+            animation-play-state: paused;
+          }
+        `}</style>
+        
+        <div className="scroll-list">
+          {items.map((item: any, idx: number) => (
+            <div key={`${item.id}-original-${idx}`}>
+              {renderItem(item)}
+            </div>
+          ))}
+          {items.map((item: any, idx: number) => (
+            <div key={`${item.id}-loop-${idx}`}>
+              {renderItem(item)}
+            </div>
+          ))}
+        </div>
+      </div>
+    );
   };
 
   const renderEstudio = () => (
@@ -181,9 +264,9 @@ export default function Agendas() {
           <LayoutDashboard className="w-5 h-5 text-mercavejo-blue" /> Estúdio
         </h3>
         <button
-          onClick={() => setManualStudioMode(!manualStudioMode)}
-          className={`p-2 rounded-lg transition-colors ${manualStudioMode ? 'bg-red-100 text-red-600' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
-          title="Ativar/Desativar modo manual"
+          onClick={toggleManualStudio}
+          className={`p-2 rounded-lg transition-all ${manualStudioMode ? 'bg-red-100 text-red-600 shadow-md' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
+          title={manualStudioMode ? 'Modo manual ativo - clique para desativar' : 'Clique para ativar modo manual'}
         >
           <Power className="w-4 h-4" />
         </button>
@@ -220,36 +303,20 @@ export default function Agendas() {
             <div className="flex justify-center py-8">
               <Loader2 className="w-8 h-8 text-mercavejo-gold animate-spin" />
             </div>
-          ) : studioCards.length === 0 ? (
-            <div className="text-center py-8 text-gray-400">
-              <AlertCircle className="w-8 h-8 mx-auto mb-2 opacity-50" />
-              <p className="text-xs font-bold">Nenhum agendamento</p>
-            </div>
           ) : (
-            <div className="h-full overflow-hidden">
-              <style>{`
-                @keyframes scroll-up {
-                  0% { transform: translateY(0); }
-                  100% { transform: translateY(-100%); }
-                }
-                .scroll-container {
-                  animation: scroll-up ${Math.max(studioCards.length * 4, 15)}s linear infinite;
-                }
-                .scroll-container:hover {
-                  animation-play-state: paused;
-                }
-              `}</style>
-              <div className="scroll-container space-y-2 pb-2">
-                {[...studioCards, ...studioCards].map((card, idx) => (
-                  <div key={`${card.id}-${idx}`} className="p-3 bg-blue-50 rounded-lg border border-blue-100">
-                    <h4 className="font-bold text-sm text-gray-900 uppercase line-clamp-2">{card.name}</h4>
-                    {card.due && (
-                      <p className="text-xs text-gray-500 mt-1">{format(new Date(card.due), 'HH:mm')}</p>
-                    )}
-                  </div>
-                ))}
-              </div>
-            </div>
+            <ScrollableList
+              items={studioCards}
+              renderItem={(card: any) => (
+                <div className="p-3 bg-blue-50 rounded-lg border border-blue-100">
+                  <h4 className="font-bold text-sm text-gray-900 uppercase line-clamp-2">{card.name}</h4>
+                  {card.due && (
+                    <p className="text-xs text-gray-500 mt-1">{format(new Date(card.due), 'HH:mm')}</p>
+                  )}
+                </div>
+              )}
+              emptyMessage="Nenhum agendamento"
+              emptyIcon={AlertCircle}
+            />
           )}
         </div>
       </div>
@@ -269,50 +336,34 @@ export default function Agendas() {
           <div className="flex justify-center py-8">
             <Loader2 className="w-8 h-8 text-mercavejo-gold animate-spin" />
           </div>
-        ) : tasks.length === 0 ? (
-          <div className="text-center py-8 text-gray-400">
-            <History className="w-8 h-8 mx-auto mb-2 opacity-50" />
-            <p className="text-xs font-bold">Nenhuma tarefa recente</p>
-          </div>
         ) : (
-          <div className="h-full overflow-hidden">
-            <style>{`
-              @keyframes scroll-up-fluxo {
-                0% { transform: translateY(0); }
-                100% { transform: translateY(-100%); }
-              }
-              .scroll-container-fluxo {
-                animation: scroll-up-fluxo ${Math.max(tasks.length * 5, 20)}s linear infinite;
-              }
-              .scroll-container-fluxo:hover {
-                animation-play-state: paused;
-              }
-            `}</style>
-            <div className="scroll-container-fluxo space-y-3 pb-3">
-              {[...tasks, ...tasks].map((task, idx) => (
-                <div key={`${task.id}-${idx}`} className="p-3 bg-gradient-to-r from-mercavejo-blue/5 to-transparent rounded-lg border border-gray-200">
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="flex-1 min-w-0">
-                      <p className="text-[10px] font-black text-mercavejo-gold uppercase tracking-widest truncate">{task.company}</p>
-                      <h4 className="text-sm font-black text-gray-900 uppercase leading-tight line-clamp-2">{task.task_name || task.taskName}</h4>
-                      <div className="flex items-center gap-2 mt-1">
-                        <div className="w-4 h-4 rounded-full bg-gray-200 flex items-center justify-center flex-shrink-0">
-                          <UserIcon className="w-2.5 h-2.5 text-gray-500" />
-                        </div>
-                        <span className="text-[10px] font-bold text-gray-600 uppercase truncate">{task.user_name || 'Usuário'}</span>
+          <ScrollableList
+            items={tasks}
+            renderItem={(task: any) => (
+              <div className="p-3 bg-gradient-to-r from-mercavejo-blue/5 to-transparent rounded-lg border border-gray-200">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="flex-1 min-w-0">
+                    <p className="text-[10px] font-black text-mercavejo-gold uppercase tracking-widest truncate">{task.company}</p>
+                    <h4 className="text-sm font-black text-gray-900 uppercase leading-tight line-clamp-2">{task.task_name || task.taskName}</h4>
+                    <div className="flex items-center gap-2 mt-1">
+                      <div className="w-4 h-4 rounded-full bg-gray-200 flex items-center justify-center flex-shrink-0">
+                        <UserIcon className="w-2.5 h-2.5 text-gray-500" />
                       </div>
-                    </div>
-                    <div className="bg-emerald-50 text-emerald-600 px-2 py-1 rounded-lg border border-emerald-100 flex-shrink-0">
-                      <span className="text-[10px] font-black font-mono">
-                        {Math.floor(task.duration / 3600).toString().padStart(2, '0')}:
-                        {Math.floor((task.duration % 3600) / 60).toString().padStart(2, '0')}
-                      </span>
+                      <span className="text-[10px] font-bold text-gray-600 uppercase truncate">{task.user_name || 'Usuário'}</span>
                     </div>
                   </div>
+                  <div className="bg-emerald-50 text-emerald-600 px-2 py-1 rounded-lg border border-emerald-100 flex-shrink-0">
+                    <span className="text-[10px] font-black font-mono">
+                      {Math.floor(task.duration / 3600).toString().padStart(2, '0')}:
+                      {Math.floor((task.duration % 3600) / 60).toString().padStart(2, '0')}
+                    </span>
+                  </div>
                 </div>
-              ))}
-            </div>
-          </div>
+              </div>
+            )}
+            emptyMessage="Nenhuma tarefa recente"
+            emptyIcon={History}
+          />
         )}
       </div>
     </div>
@@ -331,45 +382,29 @@ export default function Agendas() {
           <div className="flex justify-center py-8">
             <Loader2 className="w-8 h-8 text-mercavejo-gold animate-spin" />
           </div>
-        ) : completedCards.length === 0 ? (
-          <div className="text-center py-8 text-gray-400">
-            <CheckCircle2 className="w-8 h-8 mx-auto mb-2 opacity-50" />
-            <p className="text-xs font-bold">Nenhuma entrega concluída</p>
-          </div>
         ) : (
-          <div className="h-full overflow-hidden">
-            <style>{`
-              @keyframes scroll-up-entregas {
-                0% { transform: translateY(0); }
-                100% { transform: translateY(-100%); }
-              }
-              .scroll-container-entregas {
-                animation: scroll-up-entregas ${Math.max(completedCards.length * 4, 15)}s linear infinite;
-              }
-              .scroll-container-entregas:hover {
-                animation-play-state: paused;
-              }
-            `}</style>
-            <div className="scroll-container-entregas space-y-3 pb-3">
-              {[...completedCards, ...completedCards].map((card, idx) => (
-                <div key={`${card.id}-${idx}`} className="p-3 bg-gradient-to-r from-emerald-50 to-transparent rounded-lg border-l-4 border-l-emerald-500 border border-emerald-200">
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="flex-1 min-w-0">
-                      <h4 className="text-sm font-black text-gray-900 uppercase leading-tight line-clamp-2">{card.name}</h4>
-                      {card.members && card.members.length > 0 && (
-                        <p className="text-[10px] font-bold text-gray-600 uppercase mt-1 truncate">
-                          Por: {card.members[0].fullName}
-                        </p>
-                      )}
-                    </div>
-                    <div className="w-8 h-8 bg-emerald-100 rounded-full flex items-center justify-center text-emerald-600 flex-shrink-0">
-                      <CheckCircle2 className="w-5 h-5" />
-                    </div>
+          <ScrollableList
+            items={completedCards}
+            renderItem={(card: any) => (
+              <div className="p-3 bg-gradient-to-r from-emerald-50 to-transparent rounded-lg border-l-4 border-l-emerald-500 border border-emerald-200">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="flex-1 min-w-0">
+                    <h4 className="text-sm font-black text-gray-900 uppercase leading-tight line-clamp-2">{card.name}</h4>
+                    {card.members && card.members.length > 0 && (
+                      <p className="text-[10px] font-bold text-gray-600 uppercase mt-1 truncate">
+                        Por: {card.members[0].fullName}
+                      </p>
+                    )}
+                  </div>
+                  <div className="w-8 h-8 bg-emerald-100 rounded-full flex items-center justify-center text-emerald-600 flex-shrink-0">
+                    <CheckCircle2 className="w-5 h-5" />
                   </div>
                 </div>
-              ))}
-            </div>
-          </div>
+              </div>
+            )}
+            emptyMessage="Nenhuma entrega concluída"
+            emptyIcon={CheckCircle2}
+          />
         )}
       </div>
     </div>
@@ -388,54 +423,38 @@ export default function Agendas() {
           <div className="flex justify-center py-8">
             <Loader2 className="w-8 h-8 text-mercavejo-gold animate-spin" />
           </div>
-        ) : horariosCards.length === 0 ? (
-          <div className="text-center py-8 text-gray-400">
-            <Clock className="w-8 h-8 mx-auto mb-2 opacity-50" />
-            <p className="text-xs font-bold">Nenhum horário agendado</p>
-          </div>
         ) : (
-          <div className="h-full overflow-hidden">
-            <style>{`
-              @keyframes scroll-up-horarios {
-                0% { transform: translateY(0); }
-                100% { transform: translateY(-100%); }
-              }
-              .scroll-container-horarios {
-                animation: scroll-up-horarios ${Math.max(horariosCards.length * 4, 15)}s linear infinite;
-              }
-              .scroll-container-horarios:hover {
-                animation-play-state: paused;
-              }
-            `}</style>
-            <div className="scroll-container-horarios space-y-3 pb-3">
-              {[...horariosCards, ...horariosCards].map((card, idx) => (
-                <div key={`${card.id}-${idx}`} className="p-3 bg-gradient-to-r from-purple-50 to-transparent rounded-lg border border-purple-200">
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="flex-1 min-w-0">
-                      <h4 className="text-sm font-black text-gray-900 uppercase leading-tight line-clamp-2">{card.name}</h4>
-                      <div className="flex items-center gap-2 mt-2">
-                        {card.due && (
-                          <div className="flex items-center gap-1 text-purple-600">
-                            <Clock className="w-3.5 h-3.5" />
-                            <span className="text-xs font-bold">{format(new Date(card.due), 'HH:mm')}</span>
-                          </div>
-                        )}
-                        {card.members && card.members.length > 0 && (
-                          <div className="flex items-center gap-1 text-gray-600">
-                            <Users className="w-3.5 h-3.5" />
-                            <span className="text-xs font-bold truncate">{card.members[0].fullName}</span>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                    <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center text-purple-600 flex-shrink-0">
-                      <Clock className="w-5 h-5" />
+          <ScrollableList
+            items={horariosCards}
+            renderItem={(card: any) => (
+              <div className="p-3 bg-gradient-to-r from-purple-50 to-transparent rounded-lg border border-purple-200">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="flex-1 min-w-0">
+                    <h4 className="text-sm font-black text-gray-900 uppercase leading-tight line-clamp-2">{card.name}</h4>
+                    <div className="flex items-center gap-2 mt-2">
+                      {card.due && (
+                        <div className="flex items-center gap-1 text-purple-600">
+                          <Clock className="w-3.5 h-3.5" />
+                          <span className="text-xs font-bold">{format(new Date(card.due), 'HH:mm')}</span>
+                        </div>
+                      )}
+                      {card.members && card.members.length > 0 && (
+                        <div className="flex items-center gap-1 text-gray-600">
+                          <Users className="w-3.5 h-3.5" />
+                          <span className="text-xs font-bold truncate">{card.members[0].fullName}</span>
+                        </div>
+                      )}
                     </div>
                   </div>
+                  <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center text-purple-600 flex-shrink-0">
+                    <Clock className="w-5 h-5" />
+                  </div>
                 </div>
-              ))}
-            </div>
-          </div>
+              </div>
+            )}
+            emptyMessage="Nenhum horário agendado"
+            emptyIcon={Clock}
+          />
         )}
       </div>
     </div>
