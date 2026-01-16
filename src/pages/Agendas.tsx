@@ -202,6 +202,7 @@ export default function Agendas() {
   const ScrollableList = ({ items, renderItem, emptyMessage, emptyIcon: EmptyIcon }: any) => {
     const containerRef = useRef<HTMLDivElement>(null);
 
+    // Se não houver itens, mostrar mensagem de vazio
     if (items.length === 0) {
       return (
         <div className="text-center py-8 text-gray-400">
@@ -211,6 +212,20 @@ export default function Agendas() {
       );
     }
 
+    // Se houver poucos itens (1 ou 2), mostrar sem scroll automático
+    if (items.length <= 2) {
+      return (
+        <div className="h-full overflow-y-auto space-y-3">
+          {items.map((item: any, idx: number) => (
+            <div key={`${item.id || `item-${idx}`}-static`}>
+              {renderItem(item)}
+            </div>
+          ))}
+        </div>
+      );
+    }
+
+    // Com 3 ou mais itens, ativar scroll automático
     return (
       <div 
         ref={containerRef}
@@ -242,13 +257,15 @@ export default function Agendas() {
         `}</style>
         
         <div className="scroll-list">
+          {/* Primeira renderização dos itens */}
           {items.map((item: any, idx: number) => (
-            <div key={`${item.id}-original-${idx}`}>
+            <div key={`${item.id || `item-${idx}`}-first-${Date.now()}-${idx}`}>
               {renderItem(item)}
             </div>
           ))}
+          {/* Segunda renderização para loop infinito */}
           {items.map((item: any, idx: number) => (
-            <div key={`${item.id}-loop-${idx}`}>
+            <div key={`${item.id || `item-${idx}`}-second-${Date.now()}-${idx}`}>
               {renderItem(item)}
             </div>
           ))}
