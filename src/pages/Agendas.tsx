@@ -348,10 +348,10 @@ export default function Agendas() {
 
         {/* Grid de 4 colunas */}
         <div className="grid grid-cols-4 gap-6 h-[calc(100%-80px)]">
+          {renderHorarios()}
           {renderEstudio()}
           {renderFluxo()}
           {renderEntregas()}
-          {renderHorarios()}
         </div>
       </main>
     </div>
