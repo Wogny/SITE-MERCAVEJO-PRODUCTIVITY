@@ -1,10 +1,15 @@
 import react from "@vitejs/plugin-react";
 import { defineConfig } from "vite";
 import { VitePWA } from 'vite-plugin-pwa';
+import legacy from '@vitejs/plugin-legacy';
 
 export default defineConfig({
   plugins: [
     react(),
+    legacy({
+      targets: ['defaults', 'not IE 11', 'chrome > 60', 'safari > 12'],
+      additionalLegacyPolyfills: ['regenerator-runtime/runtime']
+    }),
     VitePWA({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.ico', 'robots.txt', 'apple-touch-icon.png'],
@@ -44,6 +49,8 @@ export default defineConfig({
   },
   logLevel: 'info', 
   build: {
+    target: 'es2015',
+    minify: 'terser',
     rollupOptions: {
       onwarn(warning, warn) {
         if (
