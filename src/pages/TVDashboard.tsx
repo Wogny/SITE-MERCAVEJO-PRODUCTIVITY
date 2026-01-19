@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
-import { Clock, TrendingUp, Users, Building2, Wifi, WifiOff, Calendar, ListTodo, User as UserIcon, ZoomIn, ZoomOut, Maximize } from 'lucide-react';
+import { Clock, TrendingUp, Users, Building2, Wifi, WifiOff, Calendar, ListTodo, User as UserIcon, ZoomIn, ZoomOut, Maximize, Maximize2, Minimize2 } from 'lucide-react';
 import { startOfDay, startOfWeek, startOfMonth, isAfter, format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
@@ -16,6 +16,7 @@ export default function TVDashboard() {
   const [isConnected, setIsConnected] = useState(false);
   const [filter, setFilter] = useState<FilterType>('all');
   const [zoom, setZoom] = useState(1);
+  const [isFullscreen, setIsFullscreen] = useState(false);
 
   useEffect(() => {
     const timer = setInterval(() => setCurrentTime(new Date()), 1000);
@@ -100,6 +101,58 @@ export default function TVDashboard() {
   const handleZoomOut = () => setZoom(prev => Math.max(prev - 0.1, 0.5));
   const handleResetZoom = () => setZoom(1);
 
+  const handleFullscreen = async () => {
+    const elem = document.documentElement;
+    try {
+      if (!isFullscreen) {
+        if (elem.requestFullscreen) {
+          await elem.requestFullscreen();
+        } else if ((elem as any).webkitRequestFullscreen) {
+          await (elem as any).webkitRequestFullscreen();
+        } else if ((elem as any).mozRequestFullScreen) {
+          await (elem as any).mozRequestFullScreen();
+        } else if ((elem as any).msRequestFullscreen) {
+          await (elem as any).msRequestFullscreen();
+        }
+        setIsFullscreen(true);
+      } else {
+        if (document.fullscreenElement || (document as any).webkitFullscreenElement || (document as any).mozFullScreenElement) {
+          if (document.exitFullscreen) {
+            await document.exitFullscreen();
+          } else if ((document as any).webkitExitFullscreen) {
+            await (document as any).webkitExitFullscreen();
+          } else if ((document as any).mozCancelFullScreen) {
+            await (document as any).mozCancelFullScreen();
+          } else if ((document as any).msExitFullscreen) {
+            await (document as any).msExitFullscreen();
+          }
+        }
+        setIsFullscreen(false);
+      }
+    } catch (err) {
+      console.error('Erro ao alternar tela cheia:', err);
+    }
+  };
+
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      const isCurrentlyFullscreen = !!(document.fullscreenElement || (document as any).webkitFullscreenElement || (document as any).mozFullScreenElement);
+      setIsFullscreen(isCurrentlyFullscreen);
+    };
+
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
+    document.addEventListener('mozfullscreenchange', handleFullscreenChange);
+    document.addEventListener('MSFullscreenChange', handleFullscreenChange);
+
+    return () => {
+      document.removeEventListener('fullscreenchange', handleFullscreenChange);
+      document.removeEventListener('webkitfullscreenchange', handleFullscreenChange);
+      document.removeEventListener('mozfullscreenchange', handleFullscreenChange);
+      document.removeEventListener('MSFullscreenChange', handleFullscreenChange);
+    };
+  }, []);
+
   const COLORS = ['#C5A267', '#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#06b6d4'];
 
   if (loading) return (
@@ -112,6 +165,17 @@ export default function TVDashboard() {
     <div className="h-screen w-screen bg-slate-950 text-slate-100 p-6 font-sans flex flex-col overflow-hidden relative">
       {/* Zoom Controls */}
       <div className="fixed bottom-20 right-6 z-50 flex flex-col gap-2">
+        <button 
+          onClick={handleFullscreen}
+          className="bg-slate-800/80 hover:bg-slate-700 p-3 rounded-full border border-slate-600 shadow-2xl transition-all active:scale-90"
+          title={isFullscreen ? "Sair da Tela Cheia" : "Tela Cheia"}
+        >
+          {isFullscreen ? (
+            <Minimize2 className="w-6 h-6 text-mercavejo-gold" />
+          ) : (
+            <Maximize2 className="w-6 h-6 text-mercavejo-gold" />
+          )}
+        </button>
         <button 
           onClick={handleZoomIn}
           className="bg-slate-800/80 hover:bg-slate-700 p-3 rounded-full border border-slate-600 shadow-2xl transition-all active:scale-90"
