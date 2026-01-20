@@ -18,7 +18,7 @@ const Timer: React.FC<TimerProps> = ({ onTaskComplete }) => {
   const [company, setCompany] = useState('');
   const [startTime, setStartTime] = useState<number | null>(null);
   const [accumulatedTime, setAccumulatedTime] = useState(0);
-  const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const intervalRef = useRef<any>(null);
 
   const companies = [
     'Fundmax',
