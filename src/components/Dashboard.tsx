@@ -100,11 +100,11 @@ const Dashboard: React.FC<DashboardProps> = ({ tasks }) => {
   return (
     <div className="space-y-6">
       {/* Date Filter Section */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+      <div className="bg-white dark:bg-gray-900 rounded-lg shadow-sm border border-gray-200 dark:border-gray-800 p-4">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="flex items-center gap-2">
             <Filter className="w-5 h-5 text-blue-600" />
-            <h3 className="font-semibold text-gray-900">Filtrar por Período</h3>
+            <h3 className="font-semibold text-gray-900 dark:text-white">Filtrar por Período</h3>
           </div>
           
           <div className="flex flex-wrap items-center gap-3">
@@ -114,7 +114,7 @@ const Dashboard: React.FC<DashboardProps> = ({ tasks }) => {
                 type="date"
                 value={startDate}
                 onChange={(e) => setStartDate(e.target.value)}
-                className="text-sm border border-gray-300 rounded-md px-2 py-1 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                className="text-sm border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white rounded-md px-2 py-1 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
               />
             </div>
             <div className="flex items-center gap-2">
@@ -123,13 +123,13 @@ const Dashboard: React.FC<DashboardProps> = ({ tasks }) => {
                 type="date"
                 value={endDate}
                 onChange={(e) => setEndDate(e.target.value)}
-                className="text-sm border border-gray-300 rounded-md px-2 py-1 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                className="text-sm border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white rounded-md px-2 py-1 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
               />
             </div>
             {(startDate || endDate) && (
               <button
                 onClick={clearFilter}
-                className="p-1.5 bg-gray-100 text-gray-600 rounded-md hover:bg-gray-200 transition-colors"
+                className="p-1.5 bg-gray-100 text-gray-600 dark:text-gray-400 rounded-md hover:bg-gray-200 transition-colors"
                 title="Limpar Filtro"
               >
                 <X className="w-4 h-4" />
@@ -138,7 +138,7 @@ const Dashboard: React.FC<DashboardProps> = ({ tasks }) => {
           </div>
         </div>
         {(startDate || endDate) && (
-          <div className="mt-3 pt-3 border-t border-gray-100">
+          <div className="mt-3 pt-3 border-t border-gray-100 dark:border-gray-800">
             <p className="text-xs text-blue-600 font-medium">
               Mostrando dados de: {startDate ? format(parseISO(startDate), 'dd/MM/yyyy') : 'Início'} até {endDate ? format(parseISO(endDate), 'dd/MM/yyyy') : 'Hoje'}
             </p>
@@ -148,56 +148,56 @@ const Dashboard: React.FC<DashboardProps> = ({ tasks }) => {
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <div className="bg-white dark:bg-gray-900 rounded-lg shadow-sm border border-gray-200 dark:border-gray-800 p-6">
           <div className="flex items-center">
             <div className="p-2 bg-blue-100 rounded-lg">
               <Clock className="w-6 h-6 text-blue-600" />
             </div>
             <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">Hoje</p>
-              <p className="text-2xl font-semibold text-gray-900">
+              <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Hoje</p>
+              <p className="text-2xl font-semibold text-gray-900 dark:text-white">
                 {formatDuration(totalTodayTime)}
               </p>
             </div>
           </div>
         </div>
 
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <div className="bg-white dark:bg-gray-900 rounded-lg shadow-sm border border-gray-200 dark:border-gray-800 p-6">
           <div className="flex items-center">
             <div className="p-2 bg-green-100 rounded-lg">
               <TrendingUp className="w-6 h-6 text-green-600" />
             </div>
             <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">{(startDate || endDate) ? 'Total Período' : 'Esta Semana'}</p>
-              <p className="text-2xl font-semibold text-gray-900">
+              <p className="text-sm font-medium text-gray-600 dark:text-gray-400">{(startDate || endDate) ? 'Total Período' : 'Esta Semana'}</p>
+              <p className="text-2xl font-semibold text-gray-900 dark:text-white">
                 {formatDuration((startDate || endDate) ? totalFilteredTime : totalWeekTime)}
               </p>
             </div>
           </div>
         </div>
 
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <div className="bg-white dark:bg-gray-900 rounded-lg shadow-sm border border-gray-200 dark:border-gray-800 p-6">
           <div className="flex items-center">
             <div className="p-2 bg-yellow-100 rounded-lg">
               <Building2 className="w-6 h-6 text-yellow-600" />
             </div>
             <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">Empresas</p>
-              <p className="text-2xl font-semibold text-gray-900">
+              <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Empresas</p>
+              <p className="text-2xl font-semibold text-gray-900 dark:text-white">
                 {Object.keys(companyData).length}
               </p>
             </div>
           </div>
         </div>
 
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <div className="bg-white dark:bg-gray-900 rounded-lg shadow-sm border border-gray-200 dark:border-gray-800 p-6">
           <div className="flex items-center">
             <div className="p-2 bg-purple-100 rounded-lg">
               <CheckCircle className="w-6 h-6 text-purple-600" />
             </div>
             <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">Tarefas</p>
-              <p className="text-2xl font-semibold text-gray-900">
+              <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Tarefas</p>
+              <p className="text-2xl font-semibold text-gray-900 dark:text-white">
                 {filteredTasks.length}
               </p>
             </div>
@@ -207,8 +207,8 @@ const Dashboard: React.FC<DashboardProps> = ({ tasks }) => {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Company Time Distribution */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Tempo por Empresa</h3>
+        <div className="bg-white dark:bg-gray-900 rounded-lg shadow-sm border border-gray-200 dark:border-gray-800 p-6">
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Tempo por Empresa</h3>
           {pieData.length > 0 ? (
             <div className="h-64">
               <ResponsiveContainer width="100%" height="100%">
@@ -239,8 +239,8 @@ const Dashboard: React.FC<DashboardProps> = ({ tasks }) => {
         </div>
 
         {/* Top Tasks */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Tarefas Mais Frequentes</h3>
+        <div className="bg-white dark:bg-gray-900 rounded-lg shadow-sm border border-gray-200 dark:border-gray-800 p-6">
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Tarefas Mais Frequentes</h3>
           {topTasks.length > 0 ? (
             <div className="h-64">
               <ResponsiveContainer width="100%" height="100%">
@@ -268,9 +268,9 @@ const Dashboard: React.FC<DashboardProps> = ({ tasks }) => {
       </div>
 
       {/* Recent Activity */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+      <div className="bg-white dark:bg-gray-900 rounded-lg shadow-sm border border-gray-200 dark:border-gray-800 p-6">
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-semibold text-gray-900">Atividade Recente</h3>
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Atividade Recente</h3>
           <span className="text-xs font-bold text-gray-400 uppercase tracking-widest">
             {sortedTasks.length} tarefas encontradas
           </span>
@@ -278,9 +278,9 @@ const Dashboard: React.FC<DashboardProps> = ({ tasks }) => {
         {sortedTasks.length > 0 ? (
           <div className="space-y-3 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
             {sortedTasks.map((task) => (
-              <div key={task.id} className="flex items-center justify-between py-3 border-b border-gray-100 last:border-b-0 hover:bg-gray-50 transition-colors px-2 rounded-lg">
+              <div key={task.id} className="flex items-center justify-between py-3 border-b border-gray-100 dark:border-gray-800 last:border-b-0 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors px-2 rounded-lg">
                 <div className="flex-1 min-w-0">
-                  <p className="font-bold text-gray-900 truncate">{task.taskName}</p>
+                  <p className="font-bold text-gray-900 dark:text-white truncate">{task.taskName}</p>
                   <div className="flex items-center gap-2">
                     <span className="text-xs font-black text-blue-600 uppercase tracking-tighter">{task.company}</span>
                     <span className="text-[10px] text-gray-400">•</span>

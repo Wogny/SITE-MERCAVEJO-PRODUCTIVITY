@@ -1,6 +1,7 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React from 'react';
 import { Play, Pause, Square, RotateCcw } from 'lucide-react';
 import { toast } from 'react-toastify';
+import { useTimer } from '../hooks/useTimer';
 
 interface TimerProps {
   onTaskComplete: (taskData: {
@@ -12,13 +13,18 @@ interface TimerProps {
 }
 
 const Timer: React.FC<TimerProps> = ({ onTaskComplete }) => {
-  const [time, setTime] = useState(0);
-  const [isRunning, setIsRunning] = useState(false);
-  const [taskName, setTaskName] = useState('');
-  const [company, setCompany] = useState('');
-  const [startTime, setStartTime] = useState<number | null>(null);
-  const [accumulatedTime, setAccumulatedTime] = useState(0);
-  const intervalRef = useRef<any>(null);
+  const {
+    time,
+    isRunning,
+    taskName,
+    company,
+    startTimer,
+    pauseTimer,
+    stopTimer,
+    resetTimer,
+    setTaskName,
+    setCompany
+  } = useTimer();
 
   const companies = [
     'Fundmax',
@@ -38,26 +44,6 @@ const Timer: React.FC<TimerProps> = ({ onTaskComplete }) => {
     'Outro'
   ];
 
-  useEffect(() => {
-    if (isRunning && startTime) {
-      intervalRef.current = setInterval(() => {
-        const now = Date.now();
-        const elapsed = Math.floor((now - startTime) / 1000);
-        setTime(accumulatedTime + elapsed);
-      }, 1000);
-    } else {
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
-      }
-    }
-
-    return () => {
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
-      }
-    };
-  }, [isRunning, startTime, accumulatedTime]);
-
   const formatTime = (seconds: number) => {
     const hours = Math.floor(seconds / 3600);
     const minutes = Math.floor((seconds % 3600) / 60);
@@ -74,52 +60,32 @@ const Timer: React.FC<TimerProps> = ({ onTaskComplete }) => {
       toast.error('Por favor, selecione ou insira a empresa/cliente');
       return;
     }
-    setStartTime(Date.now());
-    setIsRunning(true);
+    startTimer(taskName, company);
     toast.success('Timer iniciado!');
   };
 
   const handlePause = () => {
-    if (startTime) {
-      const now = Date.now();
-      const elapsed = Math.floor((now - startTime) / 1000);
-      setAccumulatedTime(prev => prev + elapsed);
-    }
-    setIsRunning(false);
-    setStartTime(null);
+    pauseTimer();
     toast.info('Timer pausado');
   };
 
   const handleStop = () => {
-    let finalTime = time;
-    if (isRunning && startTime) {
-      const now = Date.now();
-      const elapsed = Math.floor((now - startTime) / 1000);
-      finalTime = accumulatedTime + elapsed;
-    }
-
-    if (finalTime > 0 && taskName.trim() && company.trim()) {
+    if (time > 0 && taskName.trim() && company.trim()) {
+      const finalState = stopTimer();
       onTaskComplete({
-        taskName: taskName.trim(),
-        company: company.trim(),
-        duration: finalTime,
+        taskName: finalState.taskName.trim(),
+        company: finalState.company.trim(),
+        duration: finalState.time,
         timestamp: new Date()
       });
       toast.success('Tarefa salva com sucesso!');
+    } else {
+      stopTimer();
     }
-    setIsRunning(false);
-    setStartTime(null);
-    setAccumulatedTime(0);
-    setTime(0);
-    setTaskName('');
-    setCompany('');
   };
 
   const handleReset = () => {
-    setIsRunning(false);
-    setStartTime(null);
-    setAccumulatedTime(0);
-    setTime(0);
+    resetTimer();
     toast.info('Timer resetado');
   };
 
@@ -152,7 +118,7 @@ const Timer: React.FC<TimerProps> = ({ onTaskComplete }) => {
           <button
             onClick={handleStop}
             disabled={time === 0}
-            className="flex items-center justify-center space-x-2 bg-red-600 hover:bg-red-700 text-white px-5 py-3 sm:px-6 sm:py-3 rounded-xl font-bold transition-all flex-1 sm:flex-none min-w-[120px] disabled:bg-gray-200"
+            className="flex items-center justify-center space-x-2 bg-red-600 hover:bg-red-700 text-white px-5 py-3 sm:px-6 sm:py-3 rounded-xl font-bold transition-all flex-1 sm:flex-none min-w-[120px] disabled:bg-gray-200 dark:disabled:bg-gray-800"
           >
             <Square className="w-5 h-5" />
             <span>Parar</span>

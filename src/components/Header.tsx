@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Menu, X, Clock, BarChart3, History, Settings, LogIn, LogOut, User, Monitor, Calendar } from 'lucide-react';
+import { useTimer } from '../hooks/useTimer';
 import ThemeToggle from './ThemeToggle';
 import { Link, useLocation } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
@@ -9,6 +10,14 @@ const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [user, setUser] = useState<any>(null);
   const location = useLocation();
+  const { isRunning, time } = useTimer();
+
+  const formatTime = (seconds: number) => {
+    const hours = Math.floor(seconds / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+    const secs = seconds % 60;
+    return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  };
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -87,14 +96,23 @@ const Header = () => {
 
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center space-x-2">
+            {isRunning && (
+              <div className="flex items-center space-x-2 px-3 py-1 bg-mercavejo-gold/10 border border-mercavejo-gold/20 rounded-full mr-2 animate-pulse">
+                <div className="w-2 h-2 bg-mercavejo-gold rounded-full"></div>
+                <span className="text-xs font-mono font-bold text-mercavejo-gold">{formatTime(time)}</span>
+              </div>
+            )}
             <ThemeToggle />
             <div className="h-6 w-px bg-gray-200 dark:bg-gray-700 mx-2"></div>
             {navigation.map((item) => {
               const Icon = item.icon;
+              const isTimerActive = isRunning && location.pathname === '/';
               return (
                 <Link
                   key={item.name}
                   to={item.href}
+                  target={isTimerActive && item.href !== '/' ? "_blank" : undefined}
+                  rel={isTimerActive && item.href !== '/' ? "noopener noreferrer" : undefined}
                   className={`flex items-center space-x-2 px-4 py-2 rounded-xl text-sm font-black transition-all uppercase tracking-wider ${
                     isActive(item.href)
                       ? 'text-white bg-mercavejo-blue shadow-md'
@@ -159,10 +177,13 @@ const Header = () => {
             <nav className="space-y-2">
               {navigation.map((item) => {
                 const Icon = item.icon;
+                const isTimerActive = isRunning && location.pathname === '/';
                 return (
                   <Link
                     key={item.name}
                     to={item.href}
+                    target={isTimerActive && item.href !== '/' ? "_blank" : undefined}
+                    rel={isTimerActive && item.href !== '/' ? "noopener noreferrer" : undefined}
                     onClick={() => setIsMenuOpen(false)}
                     className={`flex items-center space-x-4 px-4 py-3 rounded-xl text-base font-black uppercase tracking-widest transition-all ${
                       isActive(item.href)
