@@ -12,43 +12,52 @@ interface TimerState {
   lastUpdate: number;
 }
 
+const initialState: TimerState = {
+  time: 0,
+  isRunning: false,
+  taskName: '',
+  company: '',
+  startTime: null,
+  accumulatedTime: 0,
+  lastUpdate: Date.now()
+};
+
 export function useTimer() {
   const [state, setState] = useState<TimerState>(() => {
     const saved = localStorage.getItem(TIMER_STORAGE_KEY);
     if (saved) {
-      const parsed = JSON.parse(saved);
-      // Se estava rodando, calcula o tempo decorrido desde a última atualização
-      if (parsed.isRunning && parsed.startTime) {
-        const now = Date.now();
-        const elapsedSinceLastUpdate = Math.floor((now - parsed.lastUpdate) / 1000);
-        const totalElapsed = Math.floor((now - parsed.startTime) / 1000);
-        return {
-          ...parsed,
-          time: parsed.accumulatedTime + totalElapsed,
-          lastUpdate: now
-        };
+      try {
+        const parsed = JSON.parse(saved);
+        // Se estava rodando, calcula o tempo decorrido desde a última atualização
+        if (parsed.isRunning && parsed.startTime) {
+          const now = Date.now();
+          const totalElapsed = Math.floor((now - parsed.startTime) / 1000);
+          return {
+            ...parsed,
+            time: parsed.accumulatedTime + totalElapsed,
+            lastUpdate: now
+          };
+        }
+        return parsed;
+      } catch (e) {
+        return initialState;
       }
-      return parsed;
     }
-    return {
-      time: 0,
-      isRunning: false,
-      taskName: '',
-      company: '',
-      startTime: null,
-      accumulatedTime: 0,
-      lastUpdate: Date.now()
-    };
+    return initialState;
   });
 
   const intervalRef = useRef<any>(null);
 
-  // Salva o estado no localStorage sempre que mudar
+  // Salva o estado no localStorage sempre que mudar, exceto se for o estado inicial limpo
   useEffect(() => {
-    localStorage.setItem(TIMER_STORAGE_KEY, JSON.stringify({
-      ...state,
-      lastUpdate: Date.now()
-    }));
+    if (state.time === 0 && !state.isRunning && !state.taskName && !state.company) {
+      localStorage.removeItem(TIMER_STORAGE_KEY);
+    } else {
+      localStorage.setItem(TIMER_STORAGE_KEY, JSON.stringify({
+        ...state,
+        lastUpdate: Date.now()
+      }));
+    }
   }, [state]);
 
   useEffect(() => {
@@ -99,30 +108,15 @@ export function useTimer() {
 
   const stopTimer = () => {
     const finalState = { ...state };
-    setState({
-      time: 0,
-      isRunning: false,
-      taskName: '',
-      company: '',
-      startTime: null,
-      accumulatedTime: 0,
-      lastUpdate: Date.now()
-    });
+    // Força a limpeza imediata do localStorage e do estado
     localStorage.removeItem(TIMER_STORAGE_KEY);
+    setState(initialState);
     return finalState;
   };
 
   const resetTimer = () => {
-    setState({
-      time: 0,
-      isRunning: false,
-      taskName: '',
-      company: '',
-      startTime: null,
-      accumulatedTime: 0,
-      lastUpdate: Date.now()
-    });
     localStorage.removeItem(TIMER_STORAGE_KEY);
+    setState(initialState);
   };
 
   const setTaskName = (name: string) => setState(prev => ({ ...prev, taskName: name }));
