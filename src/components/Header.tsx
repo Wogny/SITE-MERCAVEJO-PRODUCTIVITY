@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Menu, X, Clock, BarChart3, History, Settings, LogIn, LogOut, User, Monitor, Calendar } from 'lucide-react';
-import { useTimer } from '../hooks/useTimer';
+import { useTimerContext } from '../contexts/TimerContext';
 import ThemeToggle from './ThemeToggle';
 import { Link, useLocation } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
@@ -10,7 +10,7 @@ const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [user, setUser] = useState<any>(null);
   const location = useLocation();
-  const { isRunning, time } = useTimer();
+  const { isRunning, time } = useTimerContext(); // CORREÇÃO: Usa o contexto global
 
   const formatTime = (seconds: number) => {
     const hours = Math.floor(seconds / 3600);

@@ -1,7 +1,7 @@
 import React from 'react';
 import { Play, Pause, Square, RotateCcw } from 'lucide-react';
 import { toast } from 'react-toastify';
-import { useTimer } from '../hooks/useTimer';
+import { useTimerContext } from '../contexts/TimerContext';
 
 interface TimerProps {
   onTaskComplete: (taskData: {
@@ -24,7 +24,7 @@ const Timer: React.FC<TimerProps> = ({ onTaskComplete }) => {
     resetTimer,
     setTaskName,
     setCompany
-  } = useTimer();
+  } = useTimerContext(); // CORREÇÃO: Usa o contexto global
 
   const companies = [
     'Fundmax',

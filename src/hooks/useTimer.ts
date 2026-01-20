@@ -28,14 +28,15 @@ export function useTimer() {
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
-        // Se estava rodando, calcula o tempo decorrido desde a última atualização
-        if (parsed.isRunning && parsed.startTime) {
-          const now = Date.now();
-          const totalElapsed = Math.floor((now - parsed.startTime) / 1000);
+        // CORREÇÃO: Ao dar F5, sempre pausa o timer e mantém o tempo acumulado
+        // Não recalcula o tempo se estava rodando
+        if (parsed.isRunning) {
           return {
             ...parsed,
-            time: parsed.accumulatedTime + totalElapsed,
-            lastUpdate: now
+            isRunning: false, // Força pausar ao recarregar
+            time: parsed.accumulatedTime, // Usa apenas o tempo acumulado
+            startTime: null, // Remove o startTime
+            lastUpdate: Date.now()
           };
         }
         return parsed;
@@ -99,6 +100,7 @@ export function useTimer() {
       setState(prev => ({
         ...prev,
         isRunning: false,
+        time: prev.accumulatedTime + elapsed, // Atualiza o time também
         accumulatedTime: prev.accumulatedTime + elapsed,
         startTime: null,
         lastUpdate: now
