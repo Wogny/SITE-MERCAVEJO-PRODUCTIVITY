@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Menu, X, Clock, BarChart3, History, Settings, LogIn, LogOut, User, Monitor, Calendar } from 'lucide-react';
+import ThemeToggle from './ThemeToggle';
 import { Link, useLocation } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { toast } from 'react-toastify';
@@ -69,7 +70,7 @@ const Header = () => {
   };
 
   return (
-    <header className="bg-white border-b border-gray-200 sticky top-0 z-50">
+    <header className="bg-white dark:bg-mercavejo-dark border-b border-gray-200 dark:border-gray-800 sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           <div className="flex items-center">
@@ -78,7 +79,7 @@ const Header = () => {
                 <Monitor className="w-6 h-6 text-mercavejo-gold" />
               </div>
               <div className="flex flex-col leading-none">
-                <span className="text-lg font-black text-mercavejo-blue tracking-tighter uppercase">Mercavejo</span>
+                <span className="text-lg font-black text-mercavejo-blue dark:text-white tracking-tighter uppercase">Mercavejo</span>
                 <span className="text-[10px] font-bold text-mercavejo-gold tracking-[0.2em] uppercase">Productivity</span>
               </div>
             </Link>
@@ -86,6 +87,8 @@ const Header = () => {
 
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center space-x-2">
+            <ThemeToggle />
+            <div className="h-6 w-px bg-gray-200 dark:bg-gray-700 mx-2"></div>
             {navigation.map((item) => {
               const Icon = item.icon;
               return (
@@ -95,7 +98,7 @@ const Header = () => {
                   className={`flex items-center space-x-2 px-4 py-2 rounded-xl text-sm font-black transition-all uppercase tracking-wider ${
                     isActive(item.href)
                       ? 'text-white bg-mercavejo-blue shadow-md'
-                      : 'text-mercavejo-blue hover:bg-gray-100'
+                      : 'text-mercavejo-blue dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'
                   }`}
                 >
                   <Icon className="w-4 h-4" />
@@ -104,11 +107,11 @@ const Header = () => {
               );
             })}
             
-            <div className="h-6 w-px bg-gray-200 mx-2"></div>
+            <div className="h-6 w-px bg-gray-200 dark:bg-gray-700 mx-2"></div>
             
             {user ? (
               <div className="flex items-center space-x-3">
-                <div className="flex items-center space-x-2 text-sm font-bold text-mercavejo-blue">
+                <div className="flex items-center space-x-2 text-sm font-bold text-mercavejo-blue dark:text-gray-300">
                   {user.user_metadata?.avatar_url ? (
                     <img src={user.user_metadata.avatar_url} alt="Avatar" className="w-8 h-8 rounded-full border-2 border-mercavejo-gold" />
                   ) : (
@@ -138,18 +141,21 @@ const Header = () => {
 
           {/* Mobile menu button */}
           <div className="md:hidden">
-            <button
-              onClick={() => setIsMenuOpen(!isMenuOpen)}
-              className="p-2 rounded-xl text-mercavejo-blue hover:bg-gray-100 focus:outline-none"
-            >
-              {isMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-            </button>
-          </div>
+            <div className="flex items-center space-x-2">
+              <ThemeToggle />
+              <button
+                onClick={() => setIsMenuOpen(!isMenuOpen)}
+                className="p-2 rounded-xl text-mercavejo-blue dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 focus:outline-none"
+              >
+                {isMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+              </button>
+            </div>
+              </div>
         </div>
 
         {/* Mobile Navigation */}
         {isMenuOpen && (
-          <div className="md:hidden border-t border-gray-100 py-4 pb-6">
+          <div className="md:hidden border-t border-gray-100 dark:border-gray-800 py-4 pb-6 bg-white dark:bg-mercavejo-dark">
             <nav className="space-y-2">
               {navigation.map((item) => {
                 const Icon = item.icon;
@@ -161,7 +167,7 @@ const Header = () => {
                     className={`flex items-center space-x-4 px-4 py-3 rounded-xl text-base font-black uppercase tracking-widest transition-all ${
                       isActive(item.href)
                         ? 'text-white bg-mercavejo-blue'
-                        : 'text-mercavejo-blue hover:bg-gray-50'
+                        : 'text-mercavejo-blue dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800'
                     }`}
                   >
                     <Icon className="w-5 h-5" />
@@ -170,7 +176,7 @@ const Header = () => {
                 );
               })}
               
-              <div className="pt-4 mt-4 border-t border-gray-100">
+              <div className="pt-4 mt-4 border-t border-gray-100 dark:border-gray-800">
                 {user ? (
                   <button
                     onClick={() => { handleLogout(); setIsMenuOpen(false); }}

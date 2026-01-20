@@ -124,9 +124,9 @@ const Timer: React.FC<TimerProps> = ({ onTaskComplete }) => {
   };
 
   return (
-    <div className="bg-white rounded-2xl shadow-2xl border border-gray-100 p-6 sm:p-8 max-w-md w-full mx-auto">
+    <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl border border-gray-100 dark:border-gray-800 p-6 sm:p-8 max-w-md w-full mx-auto">
       <div className="text-center mb-8">
-        <div className="text-5xl sm:text-6xl font-mono font-bold text-mercavejo-blue mb-6 tracking-tighter">
+        <div className="text-5xl sm:text-6xl font-mono font-bold text-mercavejo-blue dark:text-mercavejo-gold mb-6 tracking-tighter">
           {formatTime(time)}
         </div>
         
@@ -160,7 +160,7 @@ const Timer: React.FC<TimerProps> = ({ onTaskComplete }) => {
 
           <button
             onClick={handleReset}
-            className="flex items-center justify-center space-x-2 bg-gray-100 hover:bg-gray-200 text-gray-600 px-5 py-3 sm:px-6 sm:py-3 rounded-xl font-bold transition-all flex-1 sm:flex-none min-w-[120px]"
+            className="flex items-center justify-center space-x-2 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300 px-5 py-3 sm:px-6 sm:py-3 rounded-xl font-bold transition-all flex-1 sm:flex-none min-w-[120px]"
           >
             <RotateCcw className="w-5 h-5" />
             <span>Reset</span>
@@ -170,7 +170,7 @@ const Timer: React.FC<TimerProps> = ({ onTaskComplete }) => {
 
       <div className="space-y-4">
         <div>
-          <label className="block text-xs font-black text-mercavejo-blue mb-1 uppercase tracking-widest">
+          <label className="block text-xs font-black text-mercavejo-blue dark:text-mercavejo-gold mb-1 uppercase tracking-widest">
             O que você está fazendo?
           </label>
           <input
@@ -178,18 +178,18 @@ const Timer: React.FC<TimerProps> = ({ onTaskComplete }) => {
             placeholder="Ex: Reunião de Planejamento"
             value={taskName}
             onChange={(e) => setTaskName(e.target.value)}
-            className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-mercavejo-gold focus:border-transparent outline-none transition-all"
+            className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-mercavejo-gold focus:border-transparent outline-none transition-all"
           />
         </div>
 
         <div>
-          <label className="block text-xs font-black text-mercavejo-blue mb-1 uppercase tracking-widest">
+          <label className="block text-xs font-black text-mercavejo-blue dark:text-mercavejo-gold mb-1 uppercase tracking-widest">
             Empresa / Cliente
           </label>
           <select
             value={company}
             onChange={(e) => setCompany(e.target.value)}
-            className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:ring-2 focus:ring-mercavejo-gold focus:border-transparent outline-none transition-all appearance-none bg-white"
+            className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-mercavejo-gold focus:border-transparent outline-none transition-all appearance-none"
           >
             <option value="">Selecione um cliente</option>
             {companies.map(c => (
