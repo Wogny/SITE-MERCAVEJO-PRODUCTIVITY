@@ -46,6 +46,7 @@ const Timer: React.FC<TimerProps> = ({ onTaskComplete }) => {
     'Sublime',
     'Faveni',
     'Captação de clientes',
+    'Produtividade Merlim',
     'Outro'
   ];
 

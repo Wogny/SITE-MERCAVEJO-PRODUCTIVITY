@@ -34,7 +34,7 @@ const TaskHistory: React.FC<TaskHistoryProps> = ({ tasks, onExport, onDelete, on
     'Sai do Raso', 'Marcela Beauty', 'Santo Antonio', 
     'Treina que Sara', 'Luciana Magazine', 'Projeto Pessoal', 
     'Podcast Em Foco', 'Açougue Scoz', 'Sublime', 'Faveni', 'Captação de clientes',
-    'Outro'
+    'Produtividade Merlim', 'Outro'
   ];
 
   const formatDuration = (seconds: number) => {
