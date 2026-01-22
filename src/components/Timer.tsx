@@ -41,6 +41,11 @@ const Timer: React.FC<TimerProps> = ({ onTaskComplete }) => {
     'Treina que Sara',
     'Luciana Magazine',
     'Projeto Pessoal',
+    'Podcast Em Foco',
+    'Açougue Scoz',
+    'Sublime',
+    'Faveni',
+    'Captação de clientes',
     'Outro'
   ];
 

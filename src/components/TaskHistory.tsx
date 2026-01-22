@@ -32,7 +32,9 @@ const TaskHistory: React.FC<TaskHistoryProps> = ({ tasks, onExport, onDelete, on
     'Fundmax', 'Boni Livros', 'Vox FM', 'Netflex', 'RioFibras', 
     'Mauricio Moraes', 'Café com Zakia', 'Antes da Consulta', 
     'Sai do Raso', 'Marcela Beauty', 'Santo Antonio', 
-    'Treina que Sara', 'Luciana Magazine', 'Projeto Pessoal', 'Outro'
+    'Treina que Sara', 'Luciana Magazine', 'Projeto Pessoal', 
+    'Podcast Em Foco', 'Açougue Scoz', 'Sublime', 'Faveni', 'Captação de clientes',
+    'Outro'
   ];
 
   const formatDuration = (seconds: number) => {
