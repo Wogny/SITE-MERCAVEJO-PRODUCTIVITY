@@ -91,7 +91,7 @@ const TaskHistory: React.FC<TaskHistoryProps> = ({ tasks, onExport, onDelete, on
             placeholder="Buscar tarefas..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-10 pr-3 py-2 border border-gray-200 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-mercavejo-gold outline-none"
+            className="w-full pl-10 pr-3 py-2 border border-gray-200 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-mercavejo-gold outline-none bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
           />
         </div>
 
@@ -100,7 +100,7 @@ const TaskHistory: React.FC<TaskHistoryProps> = ({ tasks, onExport, onDelete, on
           <select
             value={filterCompany}
             onChange={(e) => setFilterCompany(e.target.value)}
-            className="w-full pl-10 pr-3 py-2 border border-gray-200 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-mercavejo-gold outline-none appearance-none"
+            className="w-full pl-10 pr-3 py-2 border border-gray-200 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-mercavejo-gold outline-none appearance-none bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
           >
             <option value="">Todas as empresas</option>
             {uniqueCompanies.map(company => (
@@ -115,7 +115,7 @@ const TaskHistory: React.FC<TaskHistoryProps> = ({ tasks, onExport, onDelete, on
             type="date"
             value={filterDate}
             onChange={(e) => setFilterDate(e.target.value)}
-            className="w-full pl-10 pr-3 py-2 border border-gray-200 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-mercavejo-gold outline-none"
+            className="w-full pl-10 pr-3 py-2 border border-gray-200 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-mercavejo-gold outline-none bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
           />
         </div>
       </div>
@@ -149,7 +149,7 @@ const TaskHistory: React.FC<TaskHistoryProps> = ({ tasks, onExport, onDelete, on
                         type="text" 
                         value={editName} 
                         onChange={(e) => setEditName(e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-200 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-mercavejo-gold outline-none"
+                        className="w-full px-3 py-2 border border-gray-200 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-mercavejo-gold outline-none bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
                       />
                     </div>
                     <div>
@@ -157,7 +157,7 @@ const TaskHistory: React.FC<TaskHistoryProps> = ({ tasks, onExport, onDelete, on
                       <select 
                         value={editCompany} 
                         onChange={(e) => setEditCompany(e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-200 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-mercavejo-gold outline-none"
+                        className="w-full px-3 py-2 border border-gray-200 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-mercavejo-gold outline-none bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
                       >
                         {companiesList.map(c => <option key={c} value={c}>{c}</option>)}
                       </select>
